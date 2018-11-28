@@ -30,7 +30,8 @@ from pynta.model.experiment.base_experiment import BaseExperiment
 from pynta.model.experiment.nano_cet.decorators import (check_camera,
                                                         check_not_acquiring,
                                                         make_async_thread,)
-from pynta.model.experiment.nano_cet.localization import link_queue
+from pynta.model.experiment.nano_cet.localization import link_queue, calculate_positions_image, add_linking_queue, \
+    add_links_to_queue
 
 from pynta.model.experiment.nano_cet.saver import worker_saver, worker_listener
 from pynta.model.experiment.nano_cet.exceptions import StreamSavingRunning
@@ -66,13 +67,14 @@ class NanoCET(BaseExperiment):
         self.link_particles_process = None
         self.do_background_correction = False
         self.background_method = self.BACKGROUND_SINGLE_SNAP
+        self.last_locations = None
 
         self.waterfall_index = 0
 
         self.locations_queue = Queue()
         self.tracks_queue = Queue()
         self.saver_queue = Queue()
-
+        self.keep_locating = True
         self._threads = []
 
 
@@ -106,13 +108,13 @@ class NanoCET(BaseExperiment):
             self.logger.info('Initializing camera without extra arguments')
             self.logger.debug('cam_module.camera({})'.format(cam_init_arguments))
             self.camera = cam_module.camera(cam_init_arguments)
-            self.current_width, self.current_height = self.camera.getSize()
-            self.logger.info('Camera sensor ROI: {}px X {}px'.format(self.current_width, self.current_height))
-            self.max_width = self.camera.GetCCDWidth()
-            self.max_height = self.camera.GetCCDHeight()
-            self.logger.info('Camera sensor size: {}px X {}px'.format(self.max_width, self.max_height))
 
         self.camera.initializeCamera()
+        self.current_width, self.current_height = self.camera.getSize()
+        self.logger.info('Camera sensor ROI: {}px X {}px'.format(self.current_width, self.current_height))
+        self.max_width = self.camera.GetCCDWidth()
+        self.max_height = self.camera.GetCCDHeight()
+        self.logger.info('Camera sensor size: {}px X {}px'.format(self.max_width, self.max_height))
 
     @check_camera
     @check_not_acquiring
@@ -145,7 +147,7 @@ class NanoCET(BaseExperiment):
         Nx, Ny = self.camera.setROI(X, Y)
         self.current_width, self.current_height = self.camera.getSize()
         self.logger.debug('New camera width: {}px, height: {}px'.format(self.current_width, self.current_height))
-        self.tempimage = np.zeros((Nx, Ny))
+        self.temp_image = np.zeros((Nx, Ny))
 
     @check_camera
     @check_not_acquiring
@@ -169,8 +171,8 @@ class NanoCET(BaseExperiment):
         self.check_background()
         data = self.camera.readCamera()[-1]
         self.publisher_queue.put({'topic': 'snap', 'data': data})
-        self.temp_image = data[-1]
-        self.logger.debug('Got an image of {} pixels'.format(self.temp_image.shape))
+        self.temp_image = data
+        self.logger.debug('Got an image of {}x{} pixels'.format(self.temp_image.shape[0], self.temp_image.shape[1]))
 
     @make_async_thread
     @check_not_acquiring
@@ -275,6 +277,18 @@ class NanoCET(BaseExperiment):
             return
         self.logger.warning('The saving stream is not running. Nothing will be done.')
 
+    def start_tracking(self):
+        """ Starts the tracking of the particles
+        """
+        self.tracking = True
+        self.connect(calculate_positions_image, 'free_run', self.publisher_queue, **self.config['tracking']['locate'])
+        self.connect(add_linking_queue, 'trackpy_locations', self.locations_queue)
+        # self.connect(self.consume_locations_queue, 'trackpy_locations')
+        self.connect(add_links_to_queue, 'particle_links', self.tracks_queue)
+        self.link_particles()
+
+    def consume_locations_queue(self, location):
+        self.last_locations = location[['x', 'y']].values.tolist()
 
     @property
     def save_stream_running(self):
@@ -371,6 +385,10 @@ class NanoCET(BaseExperiment):
         # ax.set(ylim=(1e-2, 10))
         plt.show()
 
+    def finalize(self):
+        self.stop_save_stream()
+        self.keep_acquiring = False
+        self.keep_locating = False
 
 
     def __enter__(self):

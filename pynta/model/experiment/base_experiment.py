@@ -29,6 +29,7 @@ import zmq
 import yaml
 from threading import Thread
 
+from pynta.exceptions.exceptions import PublisherNotStarted
 from pynta.util import get_logger
 from pynta.model.experiment.publisher import publisher
 from pynta.model.experiment.subscriber import subscriber
@@ -46,6 +47,9 @@ class BaseExperiment:
         self._publisher = Process(target=publisher, args=[self.publisher_queue])
         self._publisher.start()
         self._connections = []
+        sleep(1)
+        if not self._publisher.is_alive():
+            raise PublisherNotStarted('Failed to start the publisher.')
 
     def stop_publisher(self):
         """ Puts the proper data to the queue in order to stop the running publisher process

@@ -23,12 +23,12 @@ class SimBrownian:
         self.difcon = 2 # Desired diffusion constant in pixel squared per second
         self.numpar = 4 # Desired number of diffusing particles
         self.signal = 30 # brightness for each particle
-        self.noise = 10 # background noise
+        self.noise = 0 # background noise
         self.psize = 8 # half-spread of each particle in the image, currently must be integer
         x = np.arange(size[0])
         y = np.arange(size[1])
         X, Y = np.meshgrid(y, x)
-        self.simbg = 5+np.sin((X+Y)/self.psize)
+        self.simbg = 0 #5+np.sin((X+Y)/self.psize) * 0
         self.initLocations()
 
     def initLocations(self):
@@ -47,7 +47,7 @@ class SimBrownian:
         x = np.arange(size[0])
         y = np.arange(size[1])
         X, Y = np.meshgrid(y, x)
-        self.simbg = 5+np.sin((X+Y)/self.psize)
+        self.simbg = 0#  5+np.sin((X+Y)/self.psize)
         self.xsize, self.ysize = size
         self.loca = self.initLocations()
         return()
@@ -70,7 +70,7 @@ class SimBrownian:
         :return: generated image with specified noise and particles position in self.loca
         """
 
-        simimage = np.random.uniform(1, self.noise, size=(self.xsize, self.ysize)) + self.simbg
+        simimage = np.random.uniform(1, self.noise, size=(self.xsize, self.ysize)) #+ self.simbg
         psize = self.psize
         normpar = np.zeros((2*psize, 2*psize))
         for x in range(psize):

@@ -24,9 +24,9 @@ class camera(cameraBase):
 
         self.running = False
         self.xsize = 600
-        self.ysize = 250
+        self.ysize = 600
         self.maxX = 600
-        self.maxY = 250
+        self.maxY = 600
         self.exposure = 0
 
         self.logger = get_logger(name=__name__)
@@ -37,7 +37,7 @@ class camera(cameraBase):
         self.logger.info('Initializing camera')
         self.maxWidth = self.GetCCDWidth()
         self.maxHeight = self.GetCCDHeight()
-        self.sb = SimBrownian([self.xsize, self.ysize])
+        self.sb = SimBrownian(size=[self.xsize, self.ysize])
         return True
 
     def triggerCamera(self):

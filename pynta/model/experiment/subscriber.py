@@ -35,9 +35,9 @@ def subscriber(func, topic, *args, **kwargs):
             logger.debug('Data: {}'.format(data))
             if data == 'stop':
                 logger.debug('Stopping subscriber on method {}'.format(func.__name__))
-                # socket.close()
                 break
 
         func(data, *args, **kwargs)
-    # sleep(1)  # Gives enough time for the publishers to finish sending data before closing the socket
+    sleep(1)  # Gives enough time for the publishers to finish sending data before closing the socket
+    socket.close()
     logger.debug('Stopped subscriber {}'.format(func.__name__))

@@ -17,7 +17,6 @@ def publisher(queue, port=5555):
     socket.bind("tcp://*:%s" % port_pub)
     sleep(1)    # It takes a time for subscribers to propagate to the publisher.
                 # Without this sleep the first packages may be lost
-
     logger.info('Bound socket on {}'.format(port_pub))
     while True:
         if not queue.empty():
@@ -30,5 +29,6 @@ def publisher(queue, port=5555):
             socket.send_string(data['topic'], zmq.SNDMORE)
             socket.send_pyobj(data['data'])
     sleep(1)  # Gives enough time to the subscribers to update their status
+    socket.close()
     logger.info('Stopped the publisher')
 

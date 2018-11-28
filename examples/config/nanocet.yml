@@ -26,7 +26,7 @@ camera:
   init: 0 # Initial arguments to pass when creating the camera
   #extra_args: [extra, arguments] # Extra arguments that can be passed when constructing the model
   model_camera: Orca Flash # To keep a registry of which camera was used in the experiment
-  exposure_time: 200ms # Initial exposure time (in ms)
+  exposure_time: 30ms # Initial exposure time (in ms)
   fps: 5  # Frames per second, should either be defined by the camera or within the model based on timing
   binning_x: 1 # Binning
   binning_y: 1
@@ -46,9 +46,9 @@ movie:
 
 tracking:
   locate:
-    diameter: 33  # Diameter of the particles (in pixels) to track
+    diameter: 11  # Diameter of the particles (in pixels) to track
     invert: False
-    minmass: 200
+    minmass: 100
   link:
     memory: 3
     search_range: 4
