@@ -16,7 +16,8 @@ from pyqtgraph import GraphicsLayoutWidget
 from pyqtgraph.Qt import QtGui, QtCore
 
 from pynta.view.workerThread import workThread
-from .monitorMainWidget import MonitorMainWidget
+from pynta.view.GUI.MonitorMainWidget import MonitorMainWidget
+
 
 class cameraViewer(QtGui.QMainWindow):
     """Main window for the viewer.

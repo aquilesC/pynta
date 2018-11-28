@@ -1,9 +1,8 @@
 """
-    monitorMain.py
-    ========================================
+    Main Window
+    ===========
 
     .. sectionauthor:: Aquiles Carattino <aquiles@aquicarattino.com>
-    .. sectionauthor:: Sanli Faez <s.faez@uu.nl>
 """
 
 import os
@@ -15,17 +14,16 @@ from multiprocessing import Process, Queue
 import h5py
 import numpy as np
 import psutil
-from PyQt4.Qt import QApplication
+from PyQt5.QtWidgets import QApplication, QMainWindow
+import pyqtgraph as pg
 from pyqtgraph import ProgressDialog
 from pyqtgraph.Qt import QtGui, QtCore
-from pyqtgraph.dockarea import *
-
-from UUTrack.Model._session import _session
-from UUTrack.View.hdfloader import HDFLoader
+from pyqtgraph.dockarea import DockArea, Dock
+# from pynta.Model._session import _session
+# from pynta.View.hdfloader import HDFLoader
 from pynta.view.GUI.MonitorMainWidget import MonitorMainWidget
 from pynta.view.GUI.waterfallWidget import waterfallWidget
 from pynta.view.Monitor.cameraViewer import cameraViewer
-from pynta.view.Monitor.clearQueueThread import clearQueueThread
 from pynta.view.GUI.configWidget import configWidget
 from pynta.view.Monitor.crossCut import crossCutWindow
 from pynta.view.Monitor.popOut import popOutWindow
@@ -33,31 +31,25 @@ from pynta.view.GUI.messageWidget import messageWidget
 from pynta.view.Monitor.specialTaskTrack import specialTaskTracking
 from pynta.view.workerThread import workThread
 from pynta.view.GUI.trajectoryWidget import trajectoryWidget
-from ...Model.workerSaver import workerSaver, clearQueue
+# from ...Model.workerSaver import workerSaver, clearQueue
 from pynta.view.Monitor import resources
 
+pg.setConfigOptions(imageAxisOrder='row-major')
 
-class monitorMain(QtGui.QMainWindow):
+class MainWindow(QMainWindow):
     """
     Main control window for showing the live captured images and initiating special tasks
     """
-    def __init__(self, session, cam):
+    def __init__(self, experiment):
         """
         Inits the camera window
 
-        :param: session: session
-        :param: cam: camera
+        :param experiment: Experiment that is controlled by the GUI
         """
-        super(monitorMain,self).__init__()
-        self.setWindowTitle('nano-EPics Flow-Setup Monitoring (UUTrack)')
+        super().__init__()
+        self.setWindowTitle('PyNTA: Python Nanoparticle Tracking Analysis')
         self.setMouseTracking(True)
-        self._session = session
-
-        self.camera = cam
-        # Queue of images. multiprocessing takes care of handling the data in and out
-        # and the sharing between parent and child processes.
-        self.q = Queue(0)
-
+        self.experiment = experiment
         self.area = DockArea()
         self.setCentralWidget(self.area)
         self.resize(1064, 840)
@@ -65,126 +57,140 @@ class monitorMain(QtGui.QMainWindow):
 
         # Main widget
         self.camWidget = MonitorMainWidget()
-        self.camWidget.setup_cross_cut(self.camera.maxHeight)
-        self.camWidget.setup_cross_hair([self.camera.maxWidth, self.camera.maxHeight])
-        self.camWidget.setup_roi_lines([self.camera.maxWidth, self.camera.maxHeight])
-        #self.camWidget.setup_overlay() #use when extra information should be viewed on the camera viewport
+        self.camWidget.setup_cross_cut(self.experiment.max_height)
+        self.camWidget.setup_cross_hair([self.experiment.max_width, self.experiment.max_height])
+        self.camWidget.setup_roi_lines([self.experiment.max_width, self.experiment.max_height])
         self.camWidget.setup_mouse_tracking()
-        # Widget for displaying information to the user
+
         self.messageWidget = messageWidget()
+
         self.cheatSheet = popOutWindow()
-        # Small window to display the results of the special task
-        self.trajectoryWidget = trajectoryWidget()
-        # Window for the camera viewer
-        self.camViewer = cameraViewer(self._session, self.camera, parent=self)
-        # Configuration widget with a parameter tree
-        self.config = configWidget(self._session)
-        # Line cut widget
-        self.crossCut = crossCutWindow(parent=self)
-        self.popOut = popOutWindow(parent=self) #_future: for making long message pop-ups
-        # Select settings Window
-        self.selectSettings = HDFLoader()
 
+
+
+        self.dmainImage = Dock("Camera", size=(80, 35))  # sizes are in percentage
+        self.dmainImage.addWidget(self.camWidget)
+        self.area.addDock(self.dmainImage, 'right')
+        self.dmessage = Dock("Messages", size=(40, 30))
+        self.dmessage.addWidget(self.messageWidget)
+        self.area.addDock(self.dmessage, 'right')
+
+        # # Widget for displaying information to the user
+
+        # # Small window to display the results of the special task
+        # self.trajectoryWidget = trajectoryWidget()
+        # # Window for the camera viewer
+        # # self.camViewer = cameraViewer(self._session, self.camera, parent=self)
+        # # Configuration widget with a parameter tree
+        # # self.config = configWidget(self._session)
+        # # Line cut widget
+        # self.crossCut = crossCutWindow(parent=self)
+        # self.popOut = popOutWindow(parent=self) #_future: for making long message pop-ups
+        # # Select settings Window
+        # # self.selectSettings = HDFLoader()
+        #
         self.refreshTimer = QtCore.QTimer()
-        self.connect(self.refreshTimer, QtCore.SIGNAL('timeout()'), self.updateGUI)
-        self.connect(self.refreshTimer, QtCore.SIGNAL('timeout()'), self.crossCut.update)
-
-        self.refreshTimer.start(self._session.GUI['refresh_time'])
-
-        self.acquiring = False
-        self.logmessage = []
-
-        ''' Initialize the camera and the camera related things '''
-        self.max_sizex = self.camera.GetCCDWidth()
-        self.max_sizey = self.camera.GetCCDHeight()
-        self.current_width = self.max_sizex
-        self.current_height = self.max_sizey
-
-        if self._session.Camera['roi_x1'] == 0:
-            self._session.Camera = {'roi_x1': 1}
-        if self._session.Camera['roi_x2'] == 0 or self._session.Camera['roi_x2'] > self.max_sizex:
-            self._session.Camera = {'roi_x2': self.max_sizex}
-        if self._session.Camera['roi_y1'] == 0:
-            self._session.Camera = {'roi_y1': 1}
-        if self._session.Camera['roi_y2'] == 0 or self._session.Camera['roi_y2'] > self.max_sizey:
-            self._session.Camera = {'roi_y2': self.max_sizey}
-
-        self.config.populateTree(self._session)
-        self.lastBuffer = time.time()
-        self.lastRefresh = time.time()
-
-        # Program variables
-        self.tempimage = []
-        self.overlayimage = []
-        self.bgimage = []
-        self.trackinfo = np.zeros((1,5)) # real particle trajectory filled by "LocateParticle" analysis
-        self.noiselvl = self._session.Tracking['noise_level']
-        self.fps = 0
-        self.buffertime = 0
-        self.buffertimes = []
-        self.refreshtimes = []
-        self.totalframes = 0
-        self.droppedframes = 0
-        self.buffer_memory = 0
-        self.waterfall_data = []
-        self.watindex = 0 # Waterfall index
-        self.corner_roi = [] # Real coordinates of the corner of the ROI region. (Min_x and Min_y).
-        self.docks = []
-        self.corner_roi.append(self._session.Camera['roi_x1'])
-        self.corner_roi.append(self._session.Camera['roi_y1'])
-
-        # Program status controllers
-        self.continuous_saving = False
-        self.show_waterfall = False
-        self.subtract_background = False
-        self.save_running = False
-        self.accumulate_buffer = False
-        self.specialtask_running = False
-        self.dock_state = None
-
+        self.refreshTimer.timeout.connect(self.updateGUI)
+        # self.refreshTimer.timeout.connect(self.crossCut.update)
+        #
+        self.refreshTimer.start(self.experiment.config['GUI']['refresh_time'])
+        #
+        # self.acquiring = False
+        # self.logmessage = []
+        #
+        # ''' Initialize the camera and the camera related things '''
+        # self.max_sizex = self.camera.GetCCDWidth()
+        # self.max_sizey = self.camera.GetCCDHeight()
+        # self.current_width = self.max_sizex
+        # self.current_height = self.max_sizey
+        #
+        # # if self._session.Camera['roi_x1'] == 0:
+        # #     self._session.Camera = {'roi_x1': 1}
+        # # if self._session.Camera['roi_x2'] == 0 or self._session.Camera['roi_x2'] > self.max_sizex:
+        # #     self._session.Camera = {'roi_x2': self.max_sizex}
+        # # if self._session.Camera['roi_y1'] == 0:
+        # #     self._session.Camera = {'roi_y1': 1}
+        # # if self._session.Camera['roi_y2'] == 0 or self._session.Camera['roi_y2'] > self.max_sizey:
+        # #     self._session.Camera = {'roi_y2': self.max_sizey}
+        #
+        # # self.config.populateTree(self.experiment.config)
+        # self.lastBuffer = time.time()
+        # self.lastRefresh = time.time()
+        #
+        # # Program variables
+        # self.tempimage = []
+        # self.overlayimage = []
+        # self.bgimage = []
+        # self.trackinfo = np.zeros((1,5)) # real particle trajectory filled by "LocateParticle" analysis
+        # # self.noiselvl = self._session.Tracking['noise_level']
+        # self.fps = 0
+        # self.buffertime = 0
+        # self.buffertimes = []
+        # self.refreshtimes = []
+        # self.totalframes = 0
+        # self.droppedframes = 0
+        # self.buffer_memory = 0
+        # self.waterfall_data = []
+        # self.watindex = 0 # Waterfall index
+        # self.corner_roi = [] # Real coordinates of the corner of the ROI region. (Min_x and Min_y).
+        # self.docks = []
+        # # self.corner_roi.append(self._session.Camera['roi_x1'])
+        # # self.corner_roi.append(self._session.Camera['roi_y1'])
+        #
+        # # Program status controllers
+        # self.continuous_saving = False
+        # self.show_waterfall = False
+        # self.subtract_background = False
+        # self.save_running = False
+        # self.accumulate_buffer = False
+        # self.specialtask_running = False
+        # self.dock_state = None
+        #
         self.setupActions()
         self.setupToolbar()
         self.setupMenubar()
-        self.setupDocks()
-        self.setupSignals()
+        # self.setupDocks()
+        # self.setupSignals()
 
         ### This block should erased in due time and one must rely exclusively on Session variables.
-        self.filedir = self._session.Saving['directory']
-        self.snap_filename = self._session.Saving['filename_photo']
-        self.movie_filename = self._session.Saving['filename_video']
+        # self.filedir = self._session.Saving['directory']
+        # self.snap_filename = self._session.Saving['filename_photo']
+        # self.movie_filename = self._session.Saving['filename_video']
         ###
-        self.messageWidget.appendLog('i', 'Program started by %s' % self._session.User['name'])
+        self.messageWidget.appendLog('i', 'Program started by %s' % self.experiment.config['User']['name'])
+
+    def start_tracking(self):
+        self.experiment.start_tracking()
 
     def showHelp(self):
         """To show the cheatsheet for shortcuts in a pop-up meassage box
         OBSOLETE, will be deleted after transferring info into a better message viewer!
         """
-        msgBox = QtGui.QMessageBox()
-        msgBox.setIcon(QtGui.QMessageBox.Information)
-        msgBox.setText("Keyboard shortcuts and Hotkeys")
-        msgBox.setInformativeText("Press details for a full list")
-        msgBox.setWindowTitle("UUTrack CheatSheet")
-        msgBox.setDetailedText("""
-            F1, Show cheatsheet\n
-            F5, Snap image\n
-            F6, Continuous run\n
-            Alt+mouse: Select line \n
-            Ctrl+mouse: Crosshair \n
-            Ctrl+B: Toggle buffering\n
-            Ctrl+G: Toggle background subtraction\n
-            Ctrl+F: Empty buffer\n
-            Ctrl+C: Start tracking\n
-            Ctrl+V: Stop tracking\n
-            Ctrl+M: Autosave on\n
-            Ctrl+N: Autosave off\n
-            Ctrl+S: Save image\n
-            Ctrl+W: Start waterfall\n
-            Ctrl+Q: Exit application\n
-            Ctrl+Shift+W: Save waterfall data\n
-            Ctrl+Shift+T: Save trajectory\n
-            """)
-        msgBox.setStandardButtons(QtGui.QMessageBox.Close)
-        retval = msgBox.exec_()
+        self.experiment.plot_histogram()
+        # msgBox = QtGui.QMessageBox()
+        # msgBox.setIcon(QtGui.QMessageBox.Information)
+        # msgBox.setText("Keyboard shortcuts and Hotkeys")
+        # msgBox.setInformativeText("Press details for a full list")
+        # msgBox.setWindowTitle("pynta CheatSheet")
+        # msgBox.setDetailedText("""
+        #     F1, Show cheatsheet\n
+        #     F5, Snap image\n
+        #     F6, Continuous run\n
+        #     Alt+mouse: Select line \n
+        #     Ctrl+mouse: Crosshair \n
+        #     Ctrl+B: Toggle buffering\n
+        #     Ctrl+G: Toggle background subtraction\n
+        #     Ctrl+F: Empty buffer\n
+        #     Ctrl+C: Start tracking\n
+        #     Ctrl+V: Stop tracking\n
+        #     Ctrl+M: Autosave on\n
+        #     Ctrl+N: Autosave off\n
+        #     Ctrl+S: Save image\n
+        #     Ctrl+W: Start waterfall\n
+        #     Ctrl+Q: Exit application\n
+        #     Ctrl+Shift+W: Save waterfall data\n
+        #     Ctrl+Shift+T: Save trajectory\n
+        #     """)
 
     def setupActions(self):
         """Setups the actions that the program will have. It is placed into a function
@@ -192,20 +198,20 @@ class monitorMain(QtGui.QMainWindow):
 
         :rtype: None
         """
-        self.exitAction = QtGui.QAction(QtGui.QIcon('UUTrack/View/Monitor/Icons/power-icon.png'), '&Exit', self)
+        self.exitAction = QtGui.QAction(QtGui.QIcon('pynta/View/GUI/Icons/power-icon.png'), '&Exit', self)
         self.exitAction.setShortcut('Ctrl+Q')
         self.exitAction.setStatusTip('Exit application')
         self.exitAction.triggered.connect(self.exitSafe)
 
-        self.saveAction = QtGui.QAction(QtGui.QIcon('UUTrack/View/Monitor/Icons/floppy-icon.png'),'&Save image',self)
+        self.saveAction = QtGui.QAction(QtGui.QIcon('pynta/View/GUI/Icons/floppy-icon.png'),'&Save image',self)
         self.saveAction.setShortcut('Ctrl+S')
         self.saveAction.setStatusTip('Save Image')
         self.saveAction.triggered.connect(self.saveImage)
 
-        self.showHelpAction = QtGui.QAction(QtGui.QIcon('UUTrack/View/Monitor/Icons/info-icon.png'),'Show cheatsheet',self)
+        self.showHelpAction = QtGui.QAction(QtGui.QIcon('pynta/View/GUI/Icons/info-icon.png'),'Show cheatsheet',self)
         self.showHelpAction.setShortcut(QtCore.Qt.Key_F1)
         self.showHelpAction.setStatusTip('Show Cheatsheet')
-        self.showHelpAction.triggered.connect(self.cheatSheet.show)
+        self.showHelpAction.triggered.connect(self.showHelp)
            
         self.saveWaterfallAction = QtGui.QAction("Save Waterfall", self)
         self.saveWaterfallAction.setShortcut('Ctrl+Shift+W')
@@ -217,47 +223,47 @@ class monitorMain(QtGui.QMainWindow):
         self.saveTrajectoryAction.setStatusTip('Save trajectory data to new file')
         self.saveTrajectoryAction.triggered.connect(self.saveTrajectory)
 
-        self.snapAction = QtGui.QAction(QtGui.QIcon('UUTrack/View/Monitor/Icons/snap.png'),'S&nap photo',self)
+        self.snapAction = QtGui.QAction(QtGui.QIcon('pynta/View/GUI/Icons/snap.png'),'S&nap photo',self)
         self.snapAction.setShortcut(QtCore.Qt.Key_F5)
         self.snapAction.setStatusTip('Snap Image')
         self.snapAction.triggered.connect(self.snap)
 
-        self.movieAction = QtGui.QAction(QtGui.QIcon('UUTrack/View/Monitor/Icons/video-icon.png'),'Start &movie',self)
+        self.movieAction = QtGui.QAction(QtGui.QIcon('pynta/View/GUI/Icons/video-icon.png'),'Start &movie',self)
         self.movieAction.setShortcut(QtCore.Qt.Key_F6)
         self.movieAction.setStatusTip('Start Movie')
         self.movieAction.triggered.connect(self.startMovie)
 
-        self.movieSaveStartAction = QtGui.QAction(QtGui.QIcon('UUTrack/View/Monitor/Icons/Download-Database-icon.png'),'Continuous saves',self)
+        self.movieSaveStartAction = QtGui.QAction(QtGui.QIcon('pynta/View/GUI/Icons/Download-Database-icon.png'),'Continuous saves',self)
         self.movieSaveStartAction.setShortcut('Ctrl+M')
         self.movieSaveStartAction.setStatusTip('Continuous save to disk')
         self.movieSaveStartAction.triggered.connect(self.movieSave)
 
-        self.movieSaveStopAction = QtGui.QAction(QtGui.QIcon('UUTrack/View/Monitor/Icons/Delete-Database-icon.png'),'Stop continuous saves',self)
+        self.movieSaveStopAction = QtGui.QAction(QtGui.QIcon('pynta/View/GUI/Icons/Delete-Database-icon.png'),'Stop continuous saves',self)
         self.movieSaveStopAction.setShortcut('Ctrl+N')
         self.movieSaveStopAction.setStatusTip('Stop continuous save to disk')
         self.movieSaveStopAction.triggered.connect(self.movieSaveStop)
 
-        self.startWaterfallAction = QtGui.QAction(QtGui.QIcon('UUTrack/View/Monitor/Icons/Blue-Waterfall-icon.png'),'Start &Waterfall',self)
+        self.startWaterfallAction = QtGui.QAction(QtGui.QIcon('pynta/View/GUI/Icons/Blue-Waterfall-icon.png'),'Start &Waterfall',self)
         self.startWaterfallAction.setShortcut('Ctrl+W')
         self.startWaterfallAction.setStatusTip('Start Waterfall')
         self.startWaterfallAction.triggered.connect(self.startWaterfall)
 
-        self.toggleBGAction = QtGui.QAction(QtGui.QIcon('UUTrack/View/Monitor/Icons/noBg.png'), 'Toggle B&G-reduction', self)
+        self.toggleBGAction = QtGui.QAction(QtGui.QIcon('pynta/View/GUI/Icons/noBg.png'), 'Toggle B&G-reduction', self)
         self.toggleBGAction.setShortcut('Ctrl+G')
         self.toggleBGAction.setStatusTip('Toggle Background Reduction')
-        self.toggleBGAction.triggered.connect(self.toggleBGReduction)
+        self.toggleBGAction.triggered.connect(self.start_tracking)
 
-        self.setROIAction = QtGui.QAction(QtGui.QIcon('UUTrack/View/Monitor/Icons/Zoom-In-icon.png'),'Set &ROI',self)
+        self.setROIAction = QtGui.QAction(QtGui.QIcon('pynta/View/GUI/Icons/Zoom-In-icon.png'),'Set &ROI',self)
         self.setROIAction.setShortcut('Ctrl+T')
         self.setROIAction.setStatusTip('Set ROI')
         self.setROIAction.triggered.connect(self.getROI)
 
-        self.clearROIAction = QtGui.QAction(QtGui.QIcon('UUTrack/View/Monitor/Icons/Zoom-Out-icon.png'),'Set R&OI',self)
+        self.clearROIAction = QtGui.QAction(QtGui.QIcon('pynta/View/GUI/Icons/Zoom-Out-icon.png'),'Set R&OI',self)
         self.clearROIAction.setShortcut('Ctrl+T')
         self.clearROIAction.setStatusTip('Clear ROI')
         self.clearROIAction.triggered.connect(self.clearROI)
 
-        self.accumulateBufferAction = QtGui.QAction(QtGui.QIcon('UUTrack/View/Monitor/Icons/disk-save.png'),'Accumulate buffer',self)
+        self.accumulateBufferAction = QtGui.QAction(QtGui.QIcon('pynta/View/GUI/Icons/disk-save.png'),'Accumulate buffer',self)
         self.accumulateBufferAction.setShortcut('Ctrl+B')
         self.accumulateBufferAction.setStatusTip('Start or stop buffer accumulation')
         self.accumulateBufferAction.triggered.connect(self.bufferStatus)
@@ -268,19 +274,19 @@ class monitorMain(QtGui.QMainWindow):
         self.clearBufferAction.triggered.connect(self.emptyQueue)
 
         self.viewerAction = QtGui.QAction('Start Viewer',self)
-        self.viewerAction.triggered.connect(self.camViewer.show)
+        # self.viewerAction.triggered.connect(self.camViewer.show)
 
         self.configAction = QtGui.QAction('Config Window',self)
-        self.configAction.triggered.connect(self.config.show)
+        # self.configAction.triggered.connect(self.config.show)
 
         self.dockAction = QtGui.QAction('Restore Docks', self)
         self.dockAction.triggered.connect(self.setupDocks)
 
-        self.crossCutAction = QtGui.QAction(QtGui.QIcon('UUTrack/View/Monitor/Icons/Ruler-icon.png'),'Show cross cut', self)
-        self.crossCutAction.triggered.connect(self.crossCut.show)
+        self.crossCutAction = QtGui.QAction(QtGui.QIcon('pynta/View/GUI/Icons/Ruler-icon.png'),'Show cross cut', self)
+        # self.crossCutAction.triggered.connect(self.crossCut.show)
 
         self.settingsAction = QtGui.QAction('Load config', self)
-        self.settingsAction.triggered.connect(self.selectSettings.show)
+        # self.settingsAction.triggered.connect(self.selectSettings.show)
 
     def setupToolbar(self):
         """Setups the toolbar with the desired icons. It's placed into a function
@@ -352,7 +358,7 @@ class monitorMain(QtGui.QMainWindow):
         self.dwaterfall = Dock("Waterfall", size=(80, 35))
         self.dparams = Dock("Parameters", size=(20, 100))
         self.dtraj = Dock("Trajectory", size=(40, 30))
-        self.dmessage = Dock("Messages", size=(40, 30))
+
         # self.dstatus = Dock("Status", size=(100, 3))
 
         self.area.addDock(self.dmainImage, 'right')
@@ -369,7 +375,7 @@ class monitorMain(QtGui.QMainWindow):
         # self.area.addDock(self.dstatus, 'bottom', self.dparams)
 
         self.dmainImage.addWidget(self.camWidget)
-        self.dmessage.addWidget(self.messageWidget)
+
         self.dparams.addWidget(self.config)
         self.dtraj.addWidget(self.trajectoryWidget)
 
@@ -392,7 +398,7 @@ class monitorMain(QtGui.QMainWindow):
         """Function for acquiring a single frame from the camera. It is triggered by the user.
         It gets the data the GUI will be updated at a fixed framerate.
         """
-        if self.acquiring: #If it is itself acquiring a message is displayed to the user warning him
+        if self.experiment.acquiring: #If it is itself acquiring a message is displayed to the user warning him
             msgBox = QtGui.QMessageBox()
             msgBox.setIcon(QtGui.QMessageBox.Critical)
             msgBox.setText("You cant snap a photo while in free run")
@@ -404,12 +410,8 @@ class monitorMain(QtGui.QMainWindow):
             retval = msgBox.exec_()
             self.messageWidget.appendLog('e', 'Tried to snap while in free run')
         else:
-            self.workerThread = workThread(self._session, self.camera)
-            self.connect(self.workerThread, QtCore.SIGNAL('image'), self.getData)
-            self.workerThread.origin = 'snap'
-            self.workerThread.start()
-            self.acquiring = True
-            self.messageWidget.appendLog('i', 'Snapped photo')
+            self.experiment.snap()
+            # self.messageWidget.appendLog('i', 'Snapped photo')
 
     def toggleBGReduction(self):
         """Toggles between background cancellation modes. Takes a background snap if necessary
@@ -448,22 +450,7 @@ class monitorMain(QtGui.QMainWindow):
             self.messageWidget.appendLog('i', 'Saved photo')
 
     def startMovie(self):
-        if self._session.Debug['to_screen']:
-            print('Start Movie')
-        if self.specialtask_running:
-            self.messageWidget.appendLog('w', 'Special task is running, press Ctrl+V to stop')
-        else:
-            if self.acquiring:
-                self.stopMovie()
-            else:
-                self.emit(QtCore.SIGNAL('stopChildMovie'))
-                self.messageWidget.appendLog('i', 'Continuous run started')
-                # Worker thread to acquire images. Specially useful for long exposure time images
-                self.workerThread = workThread(self._session,self.camera)
-                self.connect(self.workerThread, QtCore.SIGNAL('image'), self.getData)
-                self.connect(self.workerThread, QtCore.SIGNAL('finished()'), self.done)
-                self.workerThread.start()
-                self.acquiring = True
+        self.experiment.start_free_run()
 
     def stopMovie(self):
         if self.acquiring:
@@ -735,38 +722,12 @@ class monitorMain(QtGui.QMainWindow):
     def updateGUI(self):
         """Updates the image displayed to the user.
         """
-        if len(self.tempimage)>=1:
-            if (self.subtract_background and len(self.bgimage)>=1):
-                img = self.tempimage - self.bgimage
-                img[img<1] = 1
-                self.camWidget.img.setImage(img.astype(int), autoLevels=False, autoRange=False, autoHistogramRange=False)
-            else:
-                self.camWidget.img.setImage(self.tempimage, autoLevels=False, autoRange=False, autoHistogramRange=False)
-            self.buffer_memory = float(self.q.qsize())*int(self.tempimage.nbytes) / 1024 / 1024
-        if self.trackinfo.shape[0] > 1:
-            #self.camWidget.img2.setImage(self.overlayImage) #plotting the particle past trajectory on top of the camera frames
-            self.trajectoryWidget.plot.setData(self.trackinfo[1:,1],self.trackinfo[1:,2]) #updating the plotted trajectory in the tracking viewport
+        if self.experiment.temp_image is not None:
+            img = self.experiment.temp_image
+            self.camWidget.img.setImage(img.astype(int), autoLevels=False, autoRange=False, autoHistogramRange=False)
+        if self.experiment.last_locations is not None:
+            self.camWidget.drawTargetPointer(self.experiment.last_locations)
 
-        if self.show_waterfall:
-            self.waterfall_data  = self.waterfall_data[:self._session.GUI['length_waterfall'], :]
-            self.watWidget.img.setImage(np.transpose(self.waterfall_data), autoLevels=False, autoRange=False, autoHistogramRange=False)
-
-
-        new_time = time.time()
-        self.fps = new_time-self.lastRefresh
-        self.lastRefresh = new_time
-
-        self.messageWidget.updateMemory(self.buffer_memory/self._session.Saving['max_memory']*100)
-        self.messageWidget.updateProcessor(psutil.cpu_percent())
-
-        msg = '''<b>Buffer time:</b> %0.2f ms <br />
-             <b>Refresh time:</b> %0.2f ms <br />
-             <b>Acquired Frames</b> %i <br />
-             <b>Dropped Frames</b> %i <br />
-             <b>Frames in buffer</b> %i'''%(self.buffertime * 1000, self.fps * 1000, self.totalframes, self.droppedframes, self.q.qsize())
-        self.messageWidget.updateMessage(msg)
-        #self.messageWidget.updateLog(self.logMessage)
-        self.logmessage = []
 
     def saveWaterfall(self):
         """Saves the waterfall data, if any.
@@ -905,57 +866,59 @@ class monitorMain(QtGui.QMainWindow):
     def exitSafe(self):
         self.close()
 
-
     def closeEvent(self,evnt):
-        """Triggered at closing. Checks that the save is complete and closes the dataFile
         """
-        self.messageWidget.appendLog('i', 'Closing the program')
-        if self.acquiring:
-            self.stopMovie()
-        if self.specialtask_running:
-            self.stopSpecialTask()
-            while self.specialTaskWorker.isRunning():
-                pass
-        self.emit(QtCore.SIGNAL('closeAll'))
-        self.camera.stopCamera()
-        self.movieSaveStop()
-        try:
-            # Checks if the process P exists and tries to close it.
-            if self.p.is_alive():
-                qs = self.q.qsize()
-                with ProgressDialog("Finish saving data...", 0, qs) as dlg:
-                    while self.q.qsize() > 1:
-                        dlg.setValue(qs - self.q.qsize())
-                        time.sleep(0.5)
-            self.p.join()
-        except AttributeError:
-            pass
-        if self.q.qsize() > 0:
-            self.messageWidget.appendLog('i', 'The queue was not empty')
-            print('Freeing up memory...')
-            self.emptyQueue()
+            Triggered at closing. Checks that the save is complete and closes the dataFile
+        """
+        self.experiment.finalize()
 
-        # Save LOG.
-        fn = self._session.Saving['filename_log']
-        timestamp = datetime.now().strftime('%H%M%S')
-        filename = '%s%s.log' % (fn, timestamp)
-        fileDir = self._session.Saving['directory']
-        if not os.path.exists(fileDir):
-            os.makedirs(fileDir)
-
-        f = open(os.path.join(fileDir,filename), "a")
-        for line in self.messageWidget.logText:
-            f.write(line+'\n')
-        f.flush()
-        f.close()
-        print('Saved LOG')
-        super(monitorMain, self).closeEvent(evnt)
+        # self.messageWidget.appendLog('i', 'Closing the program')
+        # if self.acquiring:
+        #     self.stopMovie()
+        # if self.specialtask_running:
+        #     self.stopSpecialTask()
+        #     while self.specialTaskWorker.isRunning():
+        #         pass
+        # self.emit(QtCore.SIGNAL('closeAll'))
+        # self.camera.stopCamera()
+        # self.movieSaveStop()
+        # try:
+        #     # Checks if the process P exists and tries to close it.
+        #     if self.p.is_alive():
+        #         qs = self.q.qsize()
+        #         with ProgressDialog("Finish saving data...", 0, qs) as dlg:
+        #             while self.q.qsize() > 1:
+        #                 dlg.setValue(qs - self.q.qsize())
+        #                 time.sleep(0.5)
+        #     self.p.join()
+        # except AttributeError:
+        #     pass
+        # if self.q.qsize() > 0:
+        #     self.messageWidget.appendLog('i', 'The queue was not empty')
+        #     print('Freeing up memory...')
+        #     self.emptyQueue()
+        #
+        # # Save LOG.
+        # fn = self._session.Saving['filename_log']
+        # timestamp = datetime.now().strftime('%H%M%S')
+        # filename = '%s%s.log' % (fn, timestamp)
+        # fileDir = self._session.Saving['directory']
+        # if not os.path.exists(fileDir):
+        #     os.makedirs(fileDir)
+        #
+        # f = open(os.path.join(fileDir,filename), "a")
+        # for line in self.messageWidget.logText:
+        #     f.write(line+'\n')
+        # f.flush()
+        # f.close()
+        # print('Saved LOG')
+        super(MainWindow, self).closeEvent(evnt)
 
 
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    cam = monitorMain()
+    cam = MainWindow()
     cam.show()
     sys.exit(app.exec_())
