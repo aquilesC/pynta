@@ -34,6 +34,7 @@ from pynta.view.GUI.trajectoryWidget import trajectoryWidget
 # from ...Model.workerSaver import workerSaver, clearQueue
 from pynta.view.Monitor import resources
 
+
 pg.setConfigOptions(imageAxisOrder='row-major')
 
 class MainWindow(QMainWindow):
@@ -119,7 +120,6 @@ class MainWindow(QMainWindow):
         #
         # # Program variables
         # self.tempimage = []
-        # self.overlayimage = []
         # self.bgimage = []
         # self.trackinfo = np.zeros((1,5)) # real particle trajectory filled by "LocateParticle" analysis
         # # self.noiselvl = self._session.Tracking['noise_level']
@@ -574,7 +574,6 @@ class MainWindow(QMainWindow):
             self.camWidget.vline1.setValue(1)
             self.camWidget.vline2.setValue(Nx)
             self.trackinfo = np.zeros((1,5))
-            self.overlayimage = []
             #self.camWidget.img2.clear()
             if self.show_waterfall:
                 self.waterfall_data = np.zeros((self._session.GUI['length_waterfall'], self.current_width))
@@ -701,32 +700,14 @@ class MainWindow(QMainWindow):
         if self._session.Debug['queue_memory']:
             print('Queue Memory: %3.2f MB' % self.buffer_memory)
 
-    def getParticleLocation(self, tracktag):
-        """Gets the coordinates emitted by the specialTaskTracking and stores them in an array
-        the format of the emitted """
-        if tracktag[0, 0] == 0:  # when particle is getting out of range, locator returns a line of zeros
-            self.stopSpecialTask()
-        else:
-            self.trackinfo = np.append(self.trackinfo, tracktag, axis=0)
-            # next line checks particle location along fiber axis and call for proper control feedback
-            w = self.tempimage.shape[0]
-            if tracktag[0,1]<50:
-                self.messageWidget.appendLog('w', 'Particle approaching left limit')
-            elif tracktag[0,1]>w-50:
-                self.messageWidget.appendLog('w', 'Particle approaching right limit')
-            #print(tracktag.astype(int)) #for debugging: prints particle mass and coordinates
-            #self.overlayImage = self.camWidget.drawTargetPointer(self.overlayImage,tracktag[0][1:3]) #to overlay track and live image in viewport
-            # future: in case of an image series one should plot all the trajectory instead of just one point
-
-
     def updateGUI(self):
         """Updates the image displayed to the user.
         """
         if self.experiment.temp_image is not None:
             img = self.experiment.temp_image
             self.camWidget.img.setImage(img.astype(int), autoLevels=False, autoRange=False, autoHistogramRange=False)
-        if self.experiment.last_locations is not None:
-            self.camWidget.drawTargetPointer(self.experiment.last_locations)
+        if self.experiment.link_particles_running:
+            self.camWidget.draw_target_pointer(self.experiment.localize_particles_image(img))
 
 
     def saveWaterfall(self):

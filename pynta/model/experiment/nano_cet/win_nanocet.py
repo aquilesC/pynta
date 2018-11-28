@@ -11,6 +11,7 @@
     :copyright:  Aquiles Carattino <aquiles@aquicarattino.com>
     :license: GPLv3, see LICENSE for more details
 """
+import copy
 import importlib
 import json
 import os
@@ -29,14 +30,19 @@ from pandas import DataFrame
 from pynta.model.experiment.base_experiment import BaseExperiment
 from pynta.model.experiment.nano_cet.decorators import (check_camera,
                                                         check_not_acquiring,
-                                                        make_async_thread,)
-from pynta.model.experiment.nano_cet.localization import link_queue, calculate_positions_image, add_linking_queue, \
-    add_links_to_queue
+                                                        make_async_thread, make_async_process)
+from pynta.model.experiment.nano_cet.localization import link_queue, calculate_locations_image, add_linking_queue, \
+    add_links_to_queue, calculate_histogram_sizes
 
 from pynta.model.experiment.nano_cet.saver import worker_saver, worker_listener
 from pynta.model.experiment.nano_cet.exceptions import StreamSavingRunning
 from pynta.util import get_logger
 
+try:
+    import trackpy as tp
+    trackpy = True
+except:
+    trackpy = False
 
 class NanoCET(BaseExperiment):
     """ Experiment class for performing a nanoCET measurement."""
@@ -52,6 +58,7 @@ class NanoCET(BaseExperiment):
         self.dropped_frames = 0
         self.keep_acquiring = True
         self.acquiring = False  # Status of the acquisition
+        self.tracking = False
         self.camera = None  # This will hold the model for the camera
         self.current_height = None
         self.current_width = None
@@ -65,6 +72,7 @@ class NanoCET(BaseExperiment):
         self.async_threads = []  # List holding all the threads spawn
         self.stream_saving_process = None
         self.link_particles_process = None
+        self.calculate_histogram_process = None
         self.do_background_correction = False
         self.background_method = self.BACKGROUND_SINGLE_SNAP
         self.last_locations = None
@@ -73,9 +81,11 @@ class NanoCET(BaseExperiment):
 
         self.locations_queue = Queue()
         self.tracks_queue = Queue()
+        self.size_distribution_queue = Queue()
         self.saver_queue = Queue()
         self.keep_locating = True
         self._threads = []
+        self._processes = []
 
 
     def initialize_camera(self):
@@ -262,7 +272,8 @@ class NanoCET(BaseExperiment):
         """ Starts linking the particles while the acquisition is in progress.
         """
         self.logger.info('Starting to link particles')
-        self.link_particles_process = Process(target=link_queue, args=[self.locations_queue, self.publisher_queue],
+        self.link_particles_process = Process(target=link_queue, args=[self.locations_queue, self.publisher_queue,
+                                                                       self.tracks_queue],
                                               kwargs=self.config['tracking']['link'])
         self.link_particles_process.start()
         self.logger.debug('Started the linking process')
@@ -281,14 +292,30 @@ class NanoCET(BaseExperiment):
         """ Starts the tracking of the particles
         """
         self.tracking = True
-        self.connect(calculate_positions_image, 'free_run', self.publisher_queue, **self.config['tracking']['locate'])
-        self.connect(add_linking_queue, 'trackpy_locations', self.locations_queue)
-        # self.connect(self.consume_locations_queue, 'trackpy_locations')
-        self.connect(add_links_to_queue, 'particle_links', self.tracks_queue)
+        self.connect(calculate_locations_image, 'free_run', self.publisher_queue, self.locations_queue, **self.config['tracking']['locate'])
         self.link_particles()
+        self.calculate_histogram_process = Process(target=calculate_histogram_sizes, args=[
+            self.tracks_queue, self.config, self.size_distribution_queue
+        ])
+        self.calculate_histogram_process.start()
 
-    def consume_locations_queue(self, location):
-        self.last_locations = location[['x', 'y']].values.tolist()
+
+    def stop_tracking(self):
+        self.tracking = False
+
+    def localize_particles_image(self, image=None):
+        """
+        Localizes particles based on trackpy. It is a convenience function in order to use the configuration parameters
+        instead of manually passing them to trackpy.
+
+        """
+        if image is None:
+            image = self.temp_image
+
+        if trackpy:
+            params = copy.copy(self.config['tracking']['locate'])
+            diameter = params.pop('diameter')
+            return tp.locate(image, diameter, **params)
 
     @property
     def save_stream_running(self):
@@ -368,21 +395,19 @@ class NanoCET(BaseExperiment):
                     self.do_background_correction = False
 
     def plot_histogram(self):
-        import trackpy as tp
-
-        df = DataFrame()
-        while not self.tracks_queue.empty():
-            data = self.tracks_queue.get()
-            df = df.append(data[0])
-
-        em = tp.emsd(df, self.config['tracking']['process']['um_pixel'], self.config['camera']['fps'])  # microns per pixel = 100/285., frames per second = 24
-        fig, ax = plt.subplots()
-        ax.plot(em.index, em, 'o')
-        ax.set_xscale('log')
-        ax.set_yscale('log')
-        ax.set(ylabel=r'$\langle \Delta r^2 \rangle$ [$\mu$m$^2$]',
-               xlabel='lag time $t$')
-        # ax.set(ylim=(1e-2, 10))
+        print('Plotting histograms')
+        values = None
+        while self.size_distribution_queue.qsize()>0 or not self.size_distribution_queue.empty():
+            values = self.size_distribution_queue.get()
+        if not values:
+            return
+        A = np.zeros(len(values))
+        n = np.zeros(len(values))
+        for i in range(len(values)):
+            A[i] = values[i][0]
+            n[i] = values[i][1]
+        plt.hist(A)
+        plt.savefig('foo.png')
         plt.show()
 
     def finalize(self):

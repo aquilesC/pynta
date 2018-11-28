@@ -19,7 +19,7 @@ saving:
 
 GUI:
   length_waterfall: 20 # Total length of the Waterfall (lines)
-  refresh_time: 100 # Refresh rate of the GUI (in ms)
+  refresh_time: 30 # Refresh rate of the GUI (in ms)
 
 camera:
   model: dummy_camera # Should be a python file in model/cameras
@@ -27,7 +27,7 @@ camera:
   #extra_args: [extra, arguments] # Extra arguments that can be passed when constructing the model
   model_camera: Orca Flash # To keep a registry of which camera was used in the experiment
   exposure_time: 30ms # Initial exposure time (in ms)
-  fps: 5  # Frames per second, should either be defined by the camera or within the model based on timing
+  fps: 30  # Frames per second, should either be defined by the camera or within the model based on timing
   binning_x: 1 # Binning
   binning_y: 1
   roi_x1: 0
@@ -57,6 +57,10 @@ tracking:
   process:
     compute_drift: False
     um_pixel: 0.01  # Microns per pixel (calibration of the microscope)
+    min_traj_length: 25
+    min_mass: 0.05
+    max_size: 3.0
+    max_ecc: 0.3
   param_1: 0.
   param_2: 0
 
