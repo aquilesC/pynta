@@ -11,7 +11,7 @@ import time
 import numpy as np
 from pynta.model.cameras.simulate_brownian import SimBrownian
 from pynta.util.log import get_logger
-# from lantz import Q_
+from pynta import Q_
 from .skeleton import cameraBase
 
 
@@ -79,7 +79,7 @@ class camera(cameraBase):
         moment = time.time()
         self.sb.nextRandomStep()  # creates a next random step according to parameters in SimulateBrownian.py
         sample = self.sb.genImage()
-        sample = sample.astype('uint16')
+        sample = sample.astype('uint8')
         elapsed = time.time() - moment
         try:
             self.logger.debug('Sleeping for {}'.format(self.exposure.m_as('s') - elapsed))
@@ -135,21 +135,9 @@ class camera(cameraBase):
         """
         self.xbin = xbin
         self.ybin = ybin
-        pass
 
     def stopAcq(self):
-        """ Stops the acquisition
-
-        :return: bool True: returns true
-        """
-        return True
+        pass
 
     def stopCamera(self):
-        """Stops the acquisition and closes the connection with the camera.
-        """
-        try:
-            # Closing the camera
-            return True
-        except:
-            # Monitor failed to close
-            return False
+        pass
