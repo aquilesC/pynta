@@ -1,5 +1,5 @@
 """
-    UUTrack.View.Monitor.configWidget.py
+    UUTrack.View.Monitor.config_widget.py
     ===================================
     Simple widget for storing the parameters of the :mod:`UUTrack.Model._session`. It creates and populates tree thanks to the :meth:`UUTrack.Model._session._session.getParams`.
     The widget has two buttons, one that updates the session by emitting a `signal` to the main thread and another the repopulates the tree whith the available parameters.
@@ -13,15 +13,15 @@ from pyqtgraph.Qt import QtCore, QtGui
 from pyqtgraph.parametertree import Parameter, ParameterTree
 
 
-class configWidget(QtGui.QWidget):
+class ConfigWidget(QtGui.QWidget):
     """Widget for configuring the main parameters of the camera.
     """
-    def __init__(self, session, parent=None):
+    def __init__(self, config, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        self._session = session.copy()
-        self._session_new = self._session.copy()  # To store the changes until applied
+        # self._session = session.copy()
+        # self._session_new = self._session.copy()  # To store the changes until applied
         self.t = ParameterTree()
-        self.populateTree(session)
+        # self.populateTree(session)
         self.layout = QtGui.QGridLayout()
         self.setLayout(self.layout)
         self.layout.addWidget(self.t)

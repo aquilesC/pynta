@@ -24,11 +24,12 @@ class camera(cameraBase):
 
         self.running = False
         self.xsize = 600
-        self.ysize = 600
+        self.ysize = 400
         self.maxX = 600
-        self.maxY = 600
+        self.maxY = 400
         self.exposure = 0
-
+        self.X = [0, self.maxX-1]
+        self.Y = [0, self.maxY-1]
         self.logger = get_logger(name=__name__)
 
     def initializeCamera(self):
@@ -75,7 +76,6 @@ class camera(cameraBase):
         return self.exposure
 
     def readCamera(self):
-        X, Y = self.getSize()
         moment = time.time()
         self.sb.nextRandomStep()  # creates a next random step according to parameters in SimulateBrownian.py
         sample = self.sb.genImage()
@@ -98,9 +98,15 @@ class camera(cameraBase):
         :param Y: array type with the coordinates for the ROI Y[0], Y[1]
         :return:
         """
-        self.xsize = abs(X[1] - X[0])
-        self.ysize = abs(Y[1] - Y[0])
+        X = np.sort(X)
+        Y = np.sort(Y)
+        self.xsize = abs(X[1] - X[0])+1
+        self.ysize = abs(Y[1] - Y[0])+1
         self.sb.resizeView((self.xsize, self.ysize))
+        self.X = X
+        self.Y = Y
+        self.X[1] -= 1
+        self.Y[1] -= 1
         return self.getSize()
 
     def getSize(self):

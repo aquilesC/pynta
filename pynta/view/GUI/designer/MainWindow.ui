@@ -70,6 +70,8 @@
     <addaction name="actionSet_ROI"/>
     <addaction name="actionClear_ROI"/>
     <addaction name="actionConfiguration"/>
+    <addaction name="actionInitialize_Camera"/>
+    <addaction name="actionClose_Camera"/>
    </widget>
    <widget class="QMenu" name="menuBackground">
     <property name="title">
@@ -131,7 +133,7 @@
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionLoad_Config">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/science-and-fiction_upload.svg</normaloff>:/icon_/Icons/science-and-fiction_upload.svg</iconset>
    </property>
    <property name="text">
@@ -140,7 +142,7 @@
   </action>
   <action name="actionSave_Image">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/pictogram_save.svg</normaloff>:/icon_/Icons/pictogram_save.svg</iconset>
    </property>
    <property name="text">
@@ -149,7 +151,7 @@
   </action>
   <action name="actionLoad_Data">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/pictogram_open.svg</normaloff>:/icon_/Icons/pictogram_open.svg</iconset>
    </property>
    <property name="text">
@@ -158,7 +160,7 @@
   </action>
   <action name="actionSnap_Photo">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/science-and-fiction_capture.svg</normaloff>:/icon_/Icons/science-and-fiction_capture.svg</iconset>
    </property>
    <property name="text">
@@ -167,7 +169,7 @@
   </action>
   <action name="actionStart_Movie">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/pictogram_record.svg</normaloff>:/icon_/Icons/pictogram_record.svg</iconset>
    </property>
    <property name="text">
@@ -176,7 +178,7 @@
   </action>
   <action name="actionStop_Movie">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/pictogram_record.svg</normaloff>:/icon_/Icons/pictogram_record.svg</iconset>
    </property>
    <property name="text">
@@ -185,7 +187,7 @@
   </action>
   <action name="actionStart_Continuous_Saves">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/hatch_download.svg</normaloff>:/icon_/Icons/hatch_download.svg</iconset>
    </property>
    <property name="text">
@@ -194,7 +196,7 @@
   </action>
   <action name="actionStop_Continuous_Saves">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/hatch_download.svg</normaloff>:/icon_/Icons/hatch_download.svg</iconset>
    </property>
    <property name="text">
@@ -203,7 +205,7 @@
   </action>
   <action name="actionSet_ROI">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/pictogram_crop.svg</normaloff>:/icon_/Icons/pictogram_crop.svg</iconset>
    </property>
    <property name="text">
@@ -212,7 +214,7 @@
   </action>
   <action name="actionClear_ROI">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/hatch_enlarge.svg</normaloff>:/icon_/Icons/hatch_enlarge.svg</iconset>
    </property>
    <property name="text">
@@ -221,7 +223,7 @@
   </action>
   <action name="actionConfiguration">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/avocado_calibrate.svg</normaloff>:/icon_/Icons/avocado_calibrate.svg</iconset>
    </property>
    <property name="text">
@@ -230,7 +232,7 @@
   </action>
   <action name="actionToggle_bg_reduction">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/duotone_edit.svg</normaloff>:/icon_/Icons/duotone_edit.svg</iconset>
    </property>
    <property name="text">
@@ -239,7 +241,7 @@
   </action>
   <action name="actionStart_Tracking">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/duotone_chart.svg</normaloff>:/icon_/Icons/duotone_chart.svg</iconset>
    </property>
    <property name="text">
@@ -248,7 +250,7 @@
   </action>
   <action name="actionStart_Linking">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/pictogram_link.svg</normaloff>:/icon_/Icons/pictogram_link.svg</iconset>
    </property>
    <property name="text">
@@ -257,7 +259,7 @@
   </action>
   <action name="actionStop_Tracking">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/duotone_chart.svg</normaloff>:/icon_/Icons/duotone_chart.svg</iconset>
    </property>
    <property name="text">
@@ -266,7 +268,7 @@
   </action>
   <action name="actionStop_Linking">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/pictogram_link.svg</normaloff>:/icon_/Icons/pictogram_link.svg</iconset>
    </property>
    <property name="text">
@@ -280,7 +282,7 @@
   </action>
   <action name="actionShow_Cheatsheet">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/sketchy_create.svg</normaloff>:/icon_/Icons/sketchy_create.svg</iconset>
    </property>
    <property name="text">
@@ -289,7 +291,7 @@
   </action>
   <action name="actionAbout">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/hatch_ask.svg</normaloff>:/icon_/Icons/hatch_ask.svg</iconset>
    </property>
    <property name="text">
@@ -298,16 +300,26 @@
   </action>
   <action name="actionClose">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../resources.qrc">
      <normaloff>:/icon_/Icons/pictogram_close.svg</normaloff>:/icon_/Icons/pictogram_close.svg</iconset>
    </property>
    <property name="text">
     <string>Close</string>
    </property>
   </action>
+  <action name="actionInitialize_Camera">
+   <property name="text">
+    <string>Initialize Camera</string>
+   </property>
+  </action>
+  <action name="actionClose_Camera">
+   <property name="text">
+    <string>Close Camera</string>
+   </property>
+  </action>
  </widget>
  <resources>
-  <include location="resources.qrc"/>
+  <include location="../resources.qrc"/>
  </resources>
  <connections/>
 </ui>

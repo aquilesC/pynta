@@ -18,12 +18,12 @@
         and then re-enable.
 
     :copyright:  Aquiles Carattino <aquiles@aquicarattino.com>
-    :license: AGPLv3, see LICENSE for more details
+    :license: GPLv3, see LICENSE for more details
 """
 import numpy as np
 
-from UUTrack.Controller.devices.hamamatsu.hamamatsu_camera import HamamatsuCamera
-from ._skeleton import cameraBase
+from pynta.controller.devices.hamamatsu.hamamatsu_camera import HamamatsuCamera
+from .skeleton import cameraBase
 
 
 class camera(cameraBase):
@@ -42,12 +42,14 @@ class camera(cameraBase):
 
         :return:
         """
-
         self.camera.initCamera()
         self.maxWidth = self.GetCCDWidth()
         self.maxHeight = self.GetCCDHeight()
-        #This is important to not have shufled patches of the CCD.
-        #Have to check documentation!!
+        self.X = [0, self.maxWidth-1]
+        self.Y = [0, self.maxHeight-1]
+
+        # This is important to not have shufled patches of the CCD.
+        # Have to check documentation!!
         self.camera.setPropertyValue("readout_speed", 1)
         self.camera.setPropertyValue("defect_correct_mode", 1)
 
@@ -119,7 +121,7 @@ class camera(cameraBase):
 #        img = np.reshape(img,(dims[0],dims[1]))
         return img
 
-    def setROI(self,X,Y):
+    def setROI(self, X, Y):
         """
         Sets up the ROI. Not all cameras are 0-indexed, so this is an important
         place to define the proper ROI.
@@ -133,13 +135,14 @@ class camera(cameraBase):
         self.camera.setPropertyValue("subarray_hsize", self.camera.max_width)
         self.camera.setSubArrayMode()
 
-        X-=1
-        Y-=1
+        X -= 1
+        Y -= 1
+
         # Because of how Orca Flash 4 works, all the ROI parameters have to be multiple of 4.
-        hsize = int(abs(X[0]-X[1])/4)*4
-        hpos = int(X[0]/4)*4
-        vsize = int(abs(Y[0]-Y[1])/4)*4
-        vpos = int(Y[0]/4)*4
+        hsize = round(abs(X[0]-X[1])/4)*4
+        hpos = round(X[0]/4)*4
+        vsize = round(abs(Y[0]-Y[1])/4)*4
+        vpos = round(Y[0]/4)*4
         self.camera.setPropertyValue("subarray_vpos", vpos)
         self.camera.setPropertyValue("subarray_hpos", hpos)
         self.camera.setPropertyValue("subarray_vsize", vsize)

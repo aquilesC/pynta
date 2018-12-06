@@ -17,7 +17,8 @@ setup(
         'Operating System :: Microsoft :: Windows',
         'Programming Language :: Python',
     ],
-    #package_data={'UUTrack': ['View/Monitor/Icons/*.*', 'View/Monitor/Icons/*.*']},
-    #include_package_data=True,
-    install_requires=['',]
+    # package_data={'UUTrack': ['View/Monitor/Icons/*.*', 'View/Monitor/Icons/*.*']},
+    # include_package_data=True,
+    install_requires=['pyqt5<5.11', 'numpy', 'pyqtgraph', 'pint', 'matplotlib', 'h5py', 'trackpy', 'pandas', 'pyyaml',
+                      'pyzmq']
 )

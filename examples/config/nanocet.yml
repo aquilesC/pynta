@@ -12,10 +12,11 @@ saving:
   directory: C:\Users\carat002\Data
   filename_video: Video # Can be the same filename for video and photo
   filename_photo: Snap
+  filename_tracks: Tracks
   filename_waterfall: Waterfall
   filename_trajectory: Trajectory
   filename_log: Log
-  max_memory: 800 # In megabytes
+  max_memory: 200 # In megabytes
 
 GUI:
   length_waterfall: 20 # Total length of the Waterfall (lines)
@@ -31,9 +32,9 @@ camera:
   binning_x: 1 # Binning
   binning_y: 1
   roi_x1: 0
-  roi_x2: 200
+  roi_x2: 599
   roi_y1: 0
-  roi_y2: 200
+  roi_y2: 399
   background: '' # Full path to background file, or empty for none.
   background_method: [Method1, Method2]
 

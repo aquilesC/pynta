@@ -6,16 +6,16 @@ from PyQt5.QtWidgets import QApplication
 
 from pynta.model.experiment.nano_cet.win_nanocet import NanoCET
 from pynta.util.log import get_logger
-from pynta.view.mainwindow import MainWindow
+from pynta.view.main import MainWindow
 
 
-logger = get_logger(name='pynta.model.experiment.publisher')  # 'pynta.model.experiment.nano_cet.saver'
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+# logger = get_logger()  # 'pynta.model.experiment.nano_cet.saver'
+# logger.setLevel(logging.DEBUG)
+# ch = logging.StreamHandler()
+# ch.setLevel(logging.DEBUG)
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# ch.setFormatter(formatter)
+# logger.addHandler(ch)
 
 
 if __name__ == '__main__':
@@ -28,14 +28,7 @@ if __name__ == '__main__':
 
     with NanoCET(args.config_file) as exp:
         exp.initialize_camera()
-
-        try:
-            app = QApplication([])
-            window = MainWindow(exp)
-            window.show()
-            app.exec_()
-        except Exception as e:
-            print('An exception on the GUI appeared.')
-            print(e)
-            traceback.print_exc(file=sys.stdout)
-
+        app = QApplication([])
+        window = MainWindow(exp)
+        window.show()
+        app.exec()

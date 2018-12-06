@@ -1,19 +1,89 @@
-from multiprocessing import Queue
-from time import sleep
+from copy import copy
+from datetime import datetime
 
+import h5py
 import numpy as np
+import trackpy as tp
+from multiprocessing import Process, Event
+from time import sleep
 from pandas import DataFrame
 from scipy.stats import stats
 from trackpy.linking import Linker
 
 from pynta.model.experiment.nano_cet.exceptions import DiameterNotDefined
+from pynta.model.experiment.subscriber import subscribe
 from pynta.util import get_logger
 
-try:
-    import trackpy as tp
-    trackpy = True
-except:
-    trackpy = False
+
+class LocateParticles:
+    def __init__(self, publisher, config):
+        self.publisher = publisher
+        self._tracking_process = None
+        self._tracking_event = Event()
+        self._linking_process = None
+        self._linking_event = Event()
+        self._saving_process = None
+        self._saving_event = Event()
+        self.config = config
+
+    def start_tracking(self, topic):
+        self._tracking_event.clear()
+        self._tracking_process = Process(
+            target=calculate_locations,
+            args=[self.publisher.port, topic, self._tracking_event, self.publisher._queue],
+            kwargs=copy(self.config['locate']))
+        self._tracking_process.start()
+
+    def stop_tracking(self):
+        self._tracking_event.set()
+
+    def start_saving(self, file_path, meta):
+        self._saving_event.clear()
+        self._saving_process = Process(
+            target=save_locations,
+            args=[file_path, meta, self.publisher.port, self._saving_event])
+        self._saving_process.start()
+
+    def stop_saving(self):
+        self._saving_event.set()
+
+    def __del__(self):
+        self.stop_tracking()
+        self.stop_saving()
+
+
+def calculate_locations(port, topic, event, publisher_queue, **kwargs):
+    socket = subscribe(port, topic)
+    if 'diameter' not in kwargs:
+        raise DiameterNotDefined('A diameter is mandatory for locating particles')
+
+    while not event.is_set():
+        socket.recv_string()
+        data = socket.recv_pyobj()  # flags=0, copy=True, track=False)
+        image = data[1]  # image[0] is the timestamp of the frame
+        locations = tp.locate(image, **kwargs)
+        publisher_queue.put({'topic': 'locations', 'data': locations})
+
+
+def save_locations(file_path, meta, port, event, topic='locations'):
+    socket = subscribe(port, topic)
+    with h5py.File(file_path, 'a') as f:
+        now = str(datetime.now())
+        g = f.create_group(now)
+        g.create_dataset('metadata', data=meta.encode('ascii', 'ignore'))
+        i = 0
+        while not event.is_set():
+            socket.recv_string()
+            data = socket.recv_pyobj()
+            data = data.values
+            if i == 0:
+                x, y = data.shape[0], data.shape[1]
+                dset = g.create_dataset('locations', (x, y, 1), maxshape=(x, y, None))
+                dset[:, :, i] = data
+            else:
+                dset.resize((x, y, i+1))
+                dset[:, :, i] = data
+            i += 1
 
 
 def calculate_locations_image(image, publisher_queue, locations_queue, **kwargs):
@@ -28,12 +98,12 @@ def calculate_locations_image(image, publisher_queue, locations_queue, **kwargs)
     image = image[1]  # image[0] is the timestamp of the frame
     logger = get_logger(name=__name__)
     logger.debug('Calculating positions on image')
-    if trackpy:
-        logger.debug('Calculating positions with trackpy')
-        locations = tp.locate(image, diameter, **kwargs)
-        logger.debug('Got {} locations'.format(len(locations)))
-        publisher_queue.put({'topic': 'trackpy_locations', 'data': locations})
-        locations_queue.put(locations)
+
+    logger.debug('Calculating positions with trackpy')
+    locations = tp.locate(image, diameter, **kwargs)
+    logger.debug('Got {} locations'.format(len(locations)))
+    publisher_queue.put({'topic': 'trackpy_locations', 'data': locations})
+    locations_queue.put(locations)
 
 
 def add_linking_queue(data, queue):
@@ -53,7 +123,7 @@ def link_queue(locations_queue, publisher_queue, links_queue, **kwargs):
     del kwargs['search_range']
     linker = Linker(search_range, **kwargs)
     while True:
-        if not locations_queue.empty() or locations_queue.qsize()>0:
+        if not locations_queue.empty() or locations_queue.qsize() > 0:
             locations = locations_queue.get()
             if isinstance(locations, str):
                 logger.debug('Got string on coordinates')
@@ -108,4 +178,3 @@ def calculate_histogram_sizes(tracks_queue, config, out_queue):
 
         # if len(df) > 100:
         #     break
-

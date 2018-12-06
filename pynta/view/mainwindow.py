@@ -13,7 +13,7 @@ from multiprocessing import Process, Queue
 
 import h5py
 import numpy as np
-import psutil
+# import psutil
 from PyQt5.QtWidgets import QApplication, QMainWindow
 import pyqtgraph as pg
 from pyqtgraph import ProgressDialog
@@ -21,10 +21,10 @@ from pyqtgraph.Qt import QtGui, QtCore
 from pyqtgraph.dockarea import DockArea, Dock
 # from pynta.Model._session import _session
 # from pynta.View.hdfloader import HDFLoader
-from pynta.view.GUI.MonitorMainWidget import MonitorMainWidget
+from pynta.view.GUI.camera_viewer_widget import MonitorMainWidget
 from pynta.view.GUI.waterfallWidget import waterfallWidget
 from pynta.view.Monitor.cameraViewer import cameraViewer
-from pynta.view.GUI.configWidget import configWidget
+from pynta.view.GUI.config_widget import ConfigWidget
 from pynta.view.Monitor.crossCut import crossCutWindow
 from pynta.view.Monitor.popOut import popOutWindow
 from pynta.view.GUI.messageWidget import messageWidget
@@ -83,7 +83,7 @@ class MainWindow(QMainWindow):
         # # Window for the camera viewer
         # # self.camViewer = cameraViewer(self._session, self.camera, parent=self)
         # # Configuration widget with a parameter tree
-        # # self.config = configWidget(self._session)
+        # # self.config = ConfigWidget(self._session)
         # # Line cut widget
         # self.crossCut = crossCutWindow(parent=self)
         # self.popOut = popOutWindow(parent=self) #_future: for making long message pop-ups
@@ -553,7 +553,7 @@ class MainWindow(QMainWindow):
             self.corner_roi[0] = X[0]
             self.corner_roi[1] = Y[0]
             if self._session.Debug['to_screen']:
-                print('Corner: %s, %s' % (self.corner_roi[0],self.corner_roi[1]))
+                print('Corner: %s, %s' % (self.corner_roi[0], self.corner_roi[1]))
             self._session.Camera = {'roi_x1': int(X[0])}
             self._session.Camera = {'roi_x2': int(X[1])}
             self._session.Camera = {'roi_y1': int(Y[0])}

@@ -1,18 +1,37 @@
 import os
-
 from PyQt5 import uic
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QPushButton, QSplitter
 
-from pynta.view.GUI import resources
+from pynta.view.GUI import resources # This is what allows the icons to show up even if not explicitly used in the code
 from pynta.util.log import get_logger
+from pynta.view.GUI.camera_viewer_widget import CameraViewerWidget
+from pynta.view.GUI.config_widget import ConfigWidget
 
-class MainWindow(QMainWindow):
-    def __init__(self):
+
+class MainWindowGUI(QMainWindow):
+    def __init__(self, refresh_time=100):
         super().__init__()
-        uic.loadUi(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'GUI', 'MainWindow.ui'), self)
+        uic.loadUi(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'designer', 'MainWindow.ui'), self)
         self.logger = get_logger(name=__name__)
 
         self.connect_actions()
+
+        self.central_layout = QHBoxLayout(self.centralwidget)
+        self.widget_splitter = QSplitter()
+        # self.widget_splitter.setStretchFactor(0,100)
+        self.config_widget = ConfigWidget(None)
+        self.camera_viewer_widget = CameraViewerWidget()
+        self.widget_splitter.addWidget(self.config_widget)
+        self.widget_splitter.addWidget(self.camera_viewer_widget)
+        self.central_layout.addWidget(self.widget_splitter)
+
+        self.refresh_timer = QTimer()
+        self.refresh_timer.timeout.connect(self.update_gui)
+        self.refresh_timer.start(refresh_time)
+
+    def update_gui(self):
+        self.logger.error('Update gui not defined')
 
     def connect_actions(self):
         self.actionClose.triggered.connect(self.safe_close)
@@ -21,9 +40,9 @@ class MainWindow(QMainWindow):
         self.actionLoad_Data.triggered.connect(self.load_data)
         self.actionSnap_Photo.triggered.connect(self.snap)
         self.actionStart_Movie.triggered.connect(self.start_movie)
-        self.actionStop_Movie.triggered.connect(self.start_movie)
+        self.actionStop_Movie.triggered.connect(self.stop_movie)
         self.actionStart_Continuous_Saves.triggered.connect(self.start_continuous_saves)
-        self.actionStop_Continuous_Saves.triggered.connect(self.start_continuous_saves)
+        self.actionStop_Continuous_Saves.triggered.connect(self.stop_continuous_saves)
         self.actionSet_ROI.triggered.connect(self.set_roi)
         self.actionClear_ROI.triggered.connect(self.clear_roi)
         self.actionConfiguration.triggered.connect(self.configure)
@@ -35,6 +54,10 @@ class MainWindow(QMainWindow):
         self.actionSave_Tracks.triggered.connect(self.start_saving_tracks)
         self.actionShow_Cheatsheet.triggered.connect(self.show_cheat_sheet)
         self.actionAbout.triggered.connect(self.show_about)
+        self.actionInitialize_Camera.triggered.connect(self.initialize_camera)
+
+    def initialize_camera(self):
+        self.logger.debug('Initialize Camera')
 
     def show_about(self):
         self.logger.debug('Showing About')
@@ -51,8 +74,14 @@ class MainWindow(QMainWindow):
     def start_movie(self):
         self.logger.debug('Start a movie')
 
+    def stop_movie(self):
+        self.logger.error('Stop movie not defined')
+
     def start_continuous_saves(self):
         self.logger.debug('Started continuous saves')
+
+    def stop_continuous_saves(self):
+        self.logger.error('Stop continuous Saves not implemented')
 
     def start_tracking(self):
         self.logger.debug('Started tracking particles')
@@ -95,7 +124,7 @@ class MainWindow(QMainWindow):
         self.close()
 
     def closeEvent(self, *args, **kwargs):
-        super(MainWindow, self).closeEvent(*args, **kwargs)
+        super(MainWindowGUI, self).closeEvent(*args, **kwargs)
 
 
 
@@ -113,6 +142,6 @@ if __name__ == "__main__":
     logger.addHandler(ch)
 
     app = QApplication([])
-    win = MainWindow()
+    win = MainWindowGUI()
     win.show()
     sys.exit(app.exec_())
