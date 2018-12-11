@@ -2,10 +2,20 @@
 """
     dummyCamera.py
     ~~~~~~~~~~~~~~
-    Dummy camera class for testing GUI and other functionality. Based on the skeleton.
+    Dummy camera class for testing GUI and other functionality. This specific version generates randomly diffusing
+    particles. However, the settings are controlled in a different class, SimBrownian.
+
+    .. TODO:: The camera defines plenty of parameters that are not used or that they are confusing later on. Rasing
+    exceptions does not happen even if trying to extend beyond the maximum dimensions of the CCD.
+
+    .. TODO:: The parameters for the simulation of the brownian motion should be made explicitly here, in such a way
+    that can be used from within the config file as well.
+
+    .. TODO:: Some of the methods do not return the same datatype as the real models
 
     :copyright:  Aquiles Carattino <aquiles@aquicarattino.com>
-    :license: AGPLv3, see LICENSE for more details
+    :license: GPLv3, see LICENSE for more details
+
 """
 import time
 import numpy as np

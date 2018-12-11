@@ -14,6 +14,7 @@ from pynta.util import get_logger
 
 
 def subscribe(port, topic):
+    print('Subscribing {} to {}'.format(port, topic))
     context = zmq.Context()
     socket = context.socket(zmq.SUB)
     socket.connect("tcp://localhost:%s" % port)

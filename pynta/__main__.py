@@ -26,9 +26,9 @@ if __name__ == '__main__':
                         help="Path to the configuration file")
     args = parser.parse_args()
 
-    with NanoCET(args.config_file) as exp:
-        exp.initialize_camera()
-        app = QApplication([])
-        window = MainWindow(exp)
-        window.show()
-        app.exec()
+    exp = NanoCET(args.config_file)
+    exp.initialize_camera()
+    app = QApplication([])
+    window = MainWindow(exp)
+    window.show()
+    app.exec()

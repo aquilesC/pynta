@@ -306,14 +306,14 @@ class NanoCET(BaseExperiment):
         #     self.tracks_queue, self.config, self.size_distribution_queue
         # ])
         # self.calculate_histogram_process.start()
-        file_name = self.config['saving']['filename_tracks'] + '.hdf5'
-        file_dir = self.config['saving']['directory']
-        if not os.path.exists(file_dir):
-            os.makedirs(file_dir)
-            self.logger.debug('Created directory {}'.format(file_dir))
-        file_path = os.path.join(file_dir, file_name)
-        self.location.start_saving(file_path, json.dumps(self.config))
-        self.location.start_tracking('free_run')
+        # file_name = self.config['saving']['filename_tracks'] + '.hdf5'
+        # file_dir = self.config['saving']['directory']
+        # if not os.path.exists(file_dir):
+        #     os.makedirs(file_dir)
+        #     self.logger.debug('Created directory {}'.format(file_dir))
+        # file_path = os.path.join(file_dir, file_name)
+        # self.location.start_saving(file_path, json.dumps(self.config))
+        # self.location.start_tracking('free_run')
 
     def stop_tracking(self):
         self.tracking = False
@@ -436,5 +436,5 @@ class NanoCET(BaseExperiment):
         if self.link_particles_running:
             self.stop_link_particles()
 
-        super().__exit__(*args)
+        # super().__exit__(*args)
 

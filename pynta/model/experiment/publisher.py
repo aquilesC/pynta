@@ -1,3 +1,17 @@
+# -*- coding: utf-8 -*-
+"""
+    publisher.py
+    ~~~~~~~~~~~~
+    Publishers are responsible for broadcasting the message over the ZMQ PUB/SUB architecture.
+
+    .. TODO:: In the current implementation, data is serialized for being added to a Queue, then deserialized by the
+    publisher and serialized again to be sent. These three steps could be simplify into one if, for example, one assumes
+    that objects where pickled. There is also a possibility of assuming numpy arrays and using a zero-copy strategy.
+
+    :copyright:  Aquiles Carattino <aquiles@aquicarattino.com>
+    :license: GPLv3, see LICENSE for more details
+"""
+
 import logging
 from multiprocessing import Queue, Event, Process
 from time import sleep
@@ -6,15 +20,21 @@ from pynta.util.log import get_logger
 
 
 class Publisher:
+    """ Publisher class in which the queue for publishing messages is defined and also a separated process is started.
+    It is important to have a new process, since the serialization/deserialization of messages from the QUEUE may be
+    a bottleneck for performance.
+    """
     def __init__(self, port=5555):
         self.logger = get_logger(name=__name__)
         self._port = port
-        self._queue = Queue()
-        self._event = Event()
+        self._queue = Queue()  # The publisher will grab and broadcast the messages from this queue
+        self._event = Event()   # This event is used to stop the process
         self._process = Process(target=publisher, args=[self._queue, self._event, self._port])
         self.logger.info('Initialized published on port {}'.format(port))
 
     def start(self):
+        """ Start a new process that will be responsible for broadcasting the messages.
+        """
         self._event.clear()
         self._process.start()
         sleep(1)  # This forces the start to block until the publisher is ready
@@ -23,6 +43,10 @@ class Publisher:
         self._event.set()
 
     def empty_queue(self):
+        """ If the publisher stops before broadcasting all the messages, the Queue may still be using some memory. This
+        method is simply getting all the elements in order to free memory. Can be useful for garbage collection or
+        better control of the downstream program.
+        """
         self.logger.info('Emptying the queue of the publisher')
         self.logger.debug('Queue length: {}'.format(self._queue.qsize()))
         self._queue.close()
@@ -62,11 +86,13 @@ class Publisher:
             self._process.join(timeout)
 
     def __del__(self):
-        if self._process.is_alive():
-            self.logger.warning('Garbage collector is running but publisher is alive')
-            self.stop()
-            self.logger.info('Joining the process with timeout of 5 seconds')
-            self.join(5)
+        self.stop()
+        # if self._process is not None:
+        #     if self._process.is_alive():
+        #         self.logger.warning('Garbage collector is running but publisher is alive')
+        #         self.stop()
+        #         self.logger.info('Joining the process with timeout of 5 seconds')
+        #         self.join(5)
 
 
 def publisher(queue, event, port):
@@ -96,6 +122,7 @@ def publisher(queue, event, port):
     sleep(1)  # Gives enough time to the subscribers to update their status
     socket.close()
     logger.info('Stopped the publisher')
+
 
 if __name__ == "__main__":
     logger = get_logger(name=__name__)  # 'pynta.model.experiment.nano_cet.saver'

@@ -170,7 +170,7 @@ class BaseExperiment:
 
         self.publisher.stop()
         # self.publisher.empty_queue()
-        self.publisher.join()
+        # self.publisher.join()
 
     def __del__(self):
         self.finalize()

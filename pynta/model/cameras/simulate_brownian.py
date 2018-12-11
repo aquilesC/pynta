@@ -3,10 +3,16 @@
     simulate_brownian.py
     ==================================
     The SimulatedBrownian class generates synthetic images corresponding to particles performing a thermal Brownian
-    motion to be view, and eventually analyzed, by the rest of the openCET code.
+    motion to be view, and eventually analyzed, by the rest of the pynta program.
+
+    .. TODO:: Images could be generated a-priori and stored in memory. This would make it possible to generate higher
+    framerates and specific sleep times between them.
+
+    .. TODO:: A lot of parameters are stored as attributes of the class, but they are also used as arguments of methods.
+    Either replace methods by functions are use the attributes instead of the arguments.
 
     :copyright:  Sanli Faez <s.faez@uu.com>
-    :license: AGPLv3, see LICENSE for more details
+    :license: GPLv3, see LICENSE for more details
 """
 import numpy as np
 

@@ -26,7 +26,11 @@ class LocateParticles:
         self._saving_event = Event()
         self.config = config
 
+        self.logger = get_logger(name=__name__)
+        self.logger.info('Initialized locate particles')
+
     def start_tracking(self, topic):
+        self.logger.debug('Started tracking')
         self._tracking_event.clear()
         self._tracking_process = Process(
             target=calculate_locations,
@@ -60,6 +64,7 @@ def calculate_locations(port, topic, event, publisher_queue, **kwargs):
     while not event.is_set():
         socket.recv_string()
         data = socket.recv_pyobj()  # flags=0, copy=True, track=False)
+        print('HERE')
         image = data[1]  # image[0] is the timestamp of the frame
         locations = tp.locate(image, **kwargs)
         publisher_queue.put({'topic': 'locations', 'data': locations})
@@ -72,17 +77,19 @@ def save_locations(file_path, meta, port, event, topic='locations'):
         g = f.create_group(now)
         g.create_dataset('metadata', data=meta.encode('ascii', 'ignore'))
         i = 0
+        last_y = 0
         while not event.is_set():
             socket.recv_string()
             data = socket.recv_pyobj()
             data = data.values
+            x, y = data.shape[0], data.shape[1]
             if i == 0:
-                x, y = data.shape[0], data.shape[1]
-                dset = g.create_dataset('locations', (x, y, 1), maxshape=(x, y, None))
-                dset[:, :, i] = data
+                dset = g.create_dataset('locations', (x+1, y), maxshape=(x+1, None))
             else:
-                dset.resize((x, y, i+1))
-                dset[:, :, i] = data
+                dset.resize((x+1, y+last_y))
+            dset[0, last_y:last_y+y] = i
+            dset[1:, last_y:last_y+y] = data
+            last_y = y
             i += 1
 
 
