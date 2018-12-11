@@ -142,7 +142,7 @@ class BaseExperiment:
     def finalize(self):
         """ Needs to be overridden by child classes.
         """
-        pass
+        self.publisher.stop()
 
     def update_config(self, **kwargs):
         self.logger.info('Updating config')
@@ -157,7 +157,6 @@ class BaseExperiment:
         self.logger.info("Exiting the experiment")
         self.finalize()
 
-
         self.logger.debug('Number of open connections: {}'.format(len(self.connections)))
         for event in self.subscriber_events:
             event.set()
@@ -169,9 +168,7 @@ class BaseExperiment:
         self.logger.info('Finished the base experiment')
 
         self.publisher.stop()
-        # self.publisher.empty_queue()
-        # self.publisher.join()
 
-    def __del__(self):
-        self.finalize()
+
+
 

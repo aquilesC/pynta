@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>816</width>
-    <height>839</height>
+    <width>1071</width>
+    <height>859</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -35,7 +35,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>816</width>
+     <width>1071</width>
      <height>21</height>
     </rect>
    </property>
@@ -88,6 +88,7 @@
     <addaction name="actionStart_Linking"/>
     <addaction name="actionStop_Linking"/>
     <addaction name="actionSave_Tracks"/>
+    <addaction name="actionUpdate_Histogram"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -315,6 +316,11 @@
   <action name="actionClose_Camera">
    <property name="text">
     <string>Close Camera</string>
+   </property>
+  </action>
+  <action name="actionUpdate_Histogram">
+   <property name="text">
+    <string>Update Histogram</string>
    </property>
   </action>
  </widget>

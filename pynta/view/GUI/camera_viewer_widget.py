@@ -1,5 +1,7 @@
 import pyqtgraph as pg
 import numpy as np
+from PyQt5.QtGui import QBrush
+from PyQt5.QtWidgets import QGraphicsEllipseItem
 from pyqtgraph import GraphicsLayoutWidget
 from pyqtgraph.Qt import QtGui, QtCore
 
@@ -154,7 +156,8 @@ class CameraViewerWidget(QtGui.QWidget):
         for location in locations:
             x0 = np.int(location[0]-self.radius_circle/2)
             y0 = np.int(location[1]-self.radius_circle/2)
-            roi = pg.CircleROI([x0, y0], [self.radius_circle, self.radius_circle])
+            roi = QGraphicsEllipseItem(x0, y0, self.radius_circle, self.radius_circle)
+            roi.setBrush(QBrush(QtCore.Qt.red))
             self.rois.append(roi)
             self.view.addItem(roi)
 

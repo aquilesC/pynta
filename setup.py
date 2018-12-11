@@ -20,5 +20,5 @@ setup(
     package_data={'pynta': ['View/GUI/Icons/*.*']},
     include_package_data=True,
     install_requires=['pyqt5<5.11', 'numpy', 'pyqtgraph', 'pint', 'h5py', 'trackpy', 'pandas', 'pyyaml',
-                      'pyzmq']
+                      'pyzmq', 'numba']
 )

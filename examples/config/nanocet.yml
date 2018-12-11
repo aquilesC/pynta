@@ -47,7 +47,7 @@ movie:
 
 tracking:
   locate:
-    diameter: 11  # Diameter of the particles (in pixels) to track
+    diameter: 11  # Diameter of the particles (in pixels) to track, has to be an odd number
     invert: False
     minmass: 100
   link:
@@ -58,10 +58,11 @@ tracking:
   process:
     compute_drift: False
     um_pixel: 0.01  # Microns per pixel (calibration of the microscope)
-    min_traj_length: 25
+    min_traj_length: 2
     min_mass: 0.05
-    max_size: 3.0
-    max_ecc: 0.3
+    max_size: 50.0
+    max_ecc: 1
+    fps: 30
   param_1: 0.
   param_2: 0
 

@@ -17,7 +17,7 @@ class ConfigWidget(QtGui.QWidget):
     """Widget for configuring the main parameters of the camera.
     """
     def __init__(self, config, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+        super().__init__(parent)
         # self._session = session.copy()
         # self._session_new = self._session.copy()  # To store the changes until applied
         self.t = ParameterTree()
@@ -34,6 +34,7 @@ class ConfigWidget(QtGui.QWidget):
 
         self.layout.addWidget(self.apply)
         self.layout.addWidget(self.cancel)
+        self.resize(50, self.height())
 
     def change(self, param, changes):
         """Updates the values while being updated"""

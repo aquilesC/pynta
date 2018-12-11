@@ -37,7 +37,7 @@ class camera(cameraBase):
         self.ysize = 400
         self.maxX = 600
         self.maxY = 400
-        self.exposure = 0
+        self.exposure = Q_('10ms')
         self.X = [0, self.maxX-1]
         self.Y = [0, self.maxY-1]
         self.logger = get_logger(name=__name__)

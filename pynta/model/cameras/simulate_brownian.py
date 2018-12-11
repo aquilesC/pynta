@@ -26,11 +26,11 @@ class SimBrownian:
         # camera and monitor parameters
         self.xsize, self.ysize = size
         # simulation parameters
-        self.difcon = 2 # Desired diffusion constant in pixel squared per second
-        self.numpar = 10 # Desired number of diffusing particles
-        self.signal = 30 # brightness for each particle
-        self.noise = 0 # background noise
-        self.psize = 8 # half-spread of each particle in the image, currently must be integer
+        self.difcon = 2  # Desired diffusion constant in pixel squared per second
+        self.numpar = 50  # Desired number of diffusing particles
+        self.signal = 30  # brightness for each particle
+        self.noise = 0  # background noise
+        self.psize = 8  # half-spread of each particle in the image, currently must be integer
         x = np.arange(size[0])
         y = np.arange(size[1])
         X, Y = np.meshgrid(y, x)

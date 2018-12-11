@@ -85,15 +85,6 @@ class Publisher:
             self.logger.debug('Waiting for Publisher process to finish')
             self._process.join(timeout)
 
-    def __del__(self):
-        self.stop()
-        # if self._process is not None:
-        #     if self._process.is_alive():
-        #         self.logger.warning('Garbage collector is running but publisher is alive')
-        #         self.stop()
-        #         self.logger.info('Joining the process with timeout of 5 seconds')
-        #         self.join(5)
-
 
 def publisher(queue, event, port):
     """ Simple method that starts a publisher on the port 5555.

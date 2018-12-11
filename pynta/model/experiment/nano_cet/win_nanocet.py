@@ -46,6 +46,7 @@ class NanoCET(BaseExperiment):
 
     def __init__(self, filename=None):
         super().__init__()
+        self.saving_location = False
         self.logger = get_logger(name=__name__)
 
         self.load_configuration(filename)
@@ -193,6 +194,7 @@ class NanoCET(BaseExperiment):
 
         self.logger.info('Starting a free run acquisition')
         first = True
+        i = 0  # Used to keep track of the number of frames
         self.keep_acquiring = True  # Change this attribute to stop the acquisition
         self.camera.configure(self.config['camera'])
         self._stop_event.clear()
@@ -206,6 +208,8 @@ class NanoCET(BaseExperiment):
             data = self.camera.readCamera()
             self.logger.debug('Got {} new frames'.format(len(data)))
             for img in data:
+                i += 1
+                self.logger.debug('Number of frames: {}'.format(i))
                 if self.do_background_correction and self.background_method == self.BACKGROUND_SINGLE_SNAP:
                     img -= self.background
 
@@ -216,7 +220,7 @@ class NanoCET(BaseExperiment):
 
             self.temp_image = data[-1]
             if self.tracking:
-                self.temp_locations = self.localize_particles_image(self.temp_image)
+               self.temp_locations = self.localize_particles_image(self.temp_image)
 
         self.camera.stopAcq()
 
@@ -300,23 +304,33 @@ class NanoCET(BaseExperiment):
         """ Starts the tracking of the particles
         """
         self.tracking = True
-        # self.connect(calculate_locations_image, 'free_run', self.publisher._queue, self.locations_queue, **self.config['tracking']['locate'])
-        # self.link_particles()
-        # self.calculate_histogram_process = Process(target=calculate_histogram_sizes, args=[
-        #     self.tracks_queue, self.config, self.size_distribution_queue
-        # ])
-        # self.calculate_histogram_process.start()
-        # file_name = self.config['saving']['filename_tracks'] + '.hdf5'
-        # file_dir = self.config['saving']['directory']
-        # if not os.path.exists(file_dir):
-        #     os.makedirs(file_dir)
-        #     self.logger.debug('Created directory {}'.format(file_dir))
-        # file_path = os.path.join(file_dir, file_name)
-        # self.location.start_saving(file_path, json.dumps(self.config))
-        # self.location.start_tracking('free_run')
+        self.location.start_tracking('free_run')
 
     def stop_tracking(self):
         self.tracking = False
+        self.location.stop_tracking()
+
+    def start_saving_location(self):
+        self.saving_location = True
+        file_name = self.config['saving']['filename_tracks'] + '.hdf5'
+        file_dir = self.config['saving']['directory']
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+            self.logger.debug('Created directory {}'.format(file_dir))
+        file_path = os.path.join(file_dir, file_name)
+        self.location.start_saving(file_path, json.dumps(self.config))
+
+    def stop_saving_location(self):
+        self.saving_location = False
+        self.location.stop_saving()
+
+    def start_linking_locations(self):
+        self.logger.debug('Start linking locations')
+        self.location.start_linking()
+
+    def stop_linking_locations(self):
+        self.logger.debug('Stop linking locations')
+        self.location.stop_linking()
 
     def localize_particles_image(self, image=None):
         """
@@ -411,8 +425,10 @@ class NanoCET(BaseExperiment):
     def finalize(self):
         self.stop_free_run()
         self.stop_save_stream()
+        self.location.finalize()
         self.keep_acquiring = False
         self.keep_locating = False
+        super().finalize()
 
     def sysexcept(self, exc_type, exc_value, exc_traceback):
         self.logger.exception('Got an unhandled exception: {}'.format(exc_type))

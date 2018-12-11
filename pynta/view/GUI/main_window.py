@@ -1,37 +1,49 @@
 import os
 from PyQt5 import uic
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QPushButton, QSplitter
 
 from pynta.view.GUI import resources # This is what allows the icons to show up even if not explicitly used in the code
 from pynta.util.log import get_logger
 from pynta.view.GUI.camera_viewer_widget import CameraViewerWidget
 from pynta.view.GUI.config_widget import ConfigWidget
+from pynta.view.GUI.histogram_tracks_widget import HistogramTracksWidget
 
 
 class MainWindowGUI(QMainWindow):
-    def __init__(self, refresh_time=100):
+    def __init__(self, refresh_time=30):
         super().__init__()
         uic.loadUi(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'designer', 'MainWindow.ui'), self)
         self.logger = get_logger(name=__name__)
 
-        self.connect_actions()
+
 
         self.central_layout = QHBoxLayout(self.centralwidget)
         self.widget_splitter = QSplitter()
-        # self.widget_splitter.setStretchFactor(0,100)
-        self.config_widget = ConfigWidget(None)
+        self.config_widget = ConfigWidget(self)
         self.camera_viewer_widget = CameraViewerWidget()
+        self.histogram_widget = HistogramTracksWidget(self)
         self.widget_splitter.addWidget(self.config_widget)
         self.widget_splitter.addWidget(self.camera_viewer_widget)
+        self.widget_splitter.addWidget(self.histogram_widget)
+        self.widget_splitter.setSizes((150, 750, 750))
         self.central_layout.addWidget(self.widget_splitter)
 
         self.refresh_timer = QTimer()
         self.refresh_timer.timeout.connect(self.update_gui)
         self.refresh_timer.start(refresh_time)
 
+        self.showMaximized()
+
+        self.connect_actions()
+        self.connect_buttons()
+
     def update_gui(self):
         self.logger.error('Update gui not defined')
+
+    def connect_buttons(self):
+        self.histogram_widget.button_histogram.clicked.connect(self.update_histogram)
+        self.histogram_widget.button_tracks.clicked.connect(self.update_tracks)
 
     def connect_actions(self):
         self.actionClose.triggered.connect(self.safe_close)
@@ -55,6 +67,7 @@ class MainWindowGUI(QMainWindow):
         self.actionShow_Cheatsheet.triggered.connect(self.show_cheat_sheet)
         self.actionAbout.triggered.connect(self.show_about)
         self.actionInitialize_Camera.triggered.connect(self.initialize_camera)
+        self.actionUpdate_Histogram.triggered.connect(self.update_histogram)
 
     def initialize_camera(self):
         self.logger.debug('Initialize Camera')
@@ -122,6 +135,12 @@ class MainWindowGUI(QMainWindow):
     def safe_close(self):
         self.logger.debug('Closing the program')
         self.close()
+
+    def update_histogram(self):
+        self.logger.error('Update Histogram method not defiend')
+
+    def update_tracks(self):
+        self.logger.error('Update tracks method not defined')
 
     def closeEvent(self, *args, **kwargs):
         super(MainWindowGUI, self).closeEvent(*args, **kwargs)
