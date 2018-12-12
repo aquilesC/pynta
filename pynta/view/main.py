@@ -9,10 +9,11 @@ class MainWindow(MainWindowGUI):
 
         :param pynta.model.experiment.win_nanocet.NanoCET experiment: Experiment class
         """
-        super().__init__()
+        super().__init__(experiment.config['GUI']['refresh_time'])
 
         self.experiment = experiment
         self.camera_viewer_widget.setup_roi_lines([self.experiment.max_width, self.experiment.max_height])
+        self.config_tracking_widget.update_config(self.experiment.config['tracking'])
         self.tracking = False
 
     def initialize_camera(self):
@@ -25,13 +26,16 @@ class MainWindow(MainWindowGUI):
         if self.experiment.temp_image is not None:
             self.camera_viewer_widget.update_image(self.experiment.temp_image)
             if self.experiment.tracking:
-                self.camera_viewer_widget.draw_target_pointer(self.experiment.temp_locations)
+                locations = self.experiment.localize_particles_image(self.experiment.temp_image)
+                self.camera_viewer_widget.draw_target_pointer(locations)
 
     def start_movie(self):
         self.experiment.start_free_run()
+        self.refresh_timer.start(self.experiment.config['GUI']['refresh_time'])
 
     def stop_movie(self):
         self.experiment.stop_free_run()
+        self.refresh_timer.stop()
 
     def set_roi(self):
         self.refresh_timer.stop()
@@ -85,11 +89,17 @@ class MainWindow(MainWindowGUI):
             vals = np.array(self.experiment.location.histogram_values)[:, 0]
             vals = vals[~np.isnan(vals)]
             print(vals)
-            self.histogram_widget.update_distribution(vals)
+            self.histogram_tracks_widget.histogram_widget.update_distribution(vals)
 
     def update_tracks(self):
         locations = self.experiment.location.relevant_tracks()
-        self.histogram_widget.tracks_widget.plot_trajectories(locations)
+        self.histogram_tracks_widget.tracks_widget.plot_trajectories(locations)
+
+    def update_tracking_config(self, config):
+        config = dict(
+            tracking=config
+        )
+        self.experiment.update_config(**config)
 
     def closeEvent(self, *args, **kwargs):
         self.experiment.finalize()

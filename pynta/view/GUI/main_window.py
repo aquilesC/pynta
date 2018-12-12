@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QPushButton, QSplitter
 from pynta.view.GUI import resources # This is what allows the icons to show up even if not explicitly used in the code
 from pynta.util.log import get_logger
 from pynta.view.GUI.camera_viewer_widget import CameraViewerWidget
+from pynta.view.GUI.config_tracking_widget import ConfigTrackingWidget
 from pynta.view.GUI.config_widget import ConfigWidget
 from pynta.view.GUI.histogram_tracks_widget import HistogramTracksWidget
 
@@ -16,34 +17,38 @@ class MainWindowGUI(QMainWindow):
         uic.loadUi(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'designer', 'MainWindow.ui'), self)
         self.logger = get_logger(name=__name__)
 
-
-
         self.central_layout = QHBoxLayout(self.centralwidget)
         self.widget_splitter = QSplitter()
         self.config_widget = ConfigWidget(self)
         self.camera_viewer_widget = CameraViewerWidget()
-        self.histogram_widget = HistogramTracksWidget(self)
+        self.histogram_tracks_widget = HistogramTracksWidget(self)
         self.widget_splitter.addWidget(self.config_widget)
         self.widget_splitter.addWidget(self.camera_viewer_widget)
-        self.widget_splitter.addWidget(self.histogram_widget)
+        self.widget_splitter.addWidget(self.histogram_tracks_widget)
         self.widget_splitter.setSizes((150, 750, 750))
         self.central_layout.addWidget(self.widget_splitter)
 
+        self.config_tracking_widget = ConfigTrackingWidget()
+
         self.refresh_timer = QTimer()
         self.refresh_timer.timeout.connect(self.update_gui)
-        self.refresh_timer.start(refresh_time)
+        # self.refresh_timer.start(refresh_time)
 
         self.showMaximized()
 
         self.connect_actions()
         self.connect_buttons()
+        self.connect_signals()
 
     def update_gui(self):
         self.logger.error('Update gui not defined')
 
+    def connect_signals(self):
+        self.config_tracking_widget.apply_config.connect(self.update_tracking_config)
+
     def connect_buttons(self):
-        self.histogram_widget.button_histogram.clicked.connect(self.update_histogram)
-        self.histogram_widget.button_tracks.clicked.connect(self.update_tracks)
+        self.histogram_tracks_widget.button_histogram.clicked.connect(self.update_histogram)
+        self.histogram_tracks_widget.button_tracks.clicked.connect(self.update_tracks)
 
     def connect_actions(self):
         self.actionClose.triggered.connect(self.safe_close)
@@ -68,6 +73,7 @@ class MainWindowGUI(QMainWindow):
         self.actionAbout.triggered.connect(self.show_about)
         self.actionInitialize_Camera.triggered.connect(self.initialize_camera)
         self.actionUpdate_Histogram.triggered.connect(self.update_histogram)
+        self.actionTracking_Config.triggered.connect(self.config_tracking_widget.show)
 
     def initialize_camera(self):
         self.logger.debug('Initialize Camera')
@@ -141,6 +147,9 @@ class MainWindowGUI(QMainWindow):
 
     def update_tracks(self):
         self.logger.error('Update tracks method not defined')
+
+    def update_tracking_config(self, config):
+        self.logger.error('Update Tracking config method not defined')
 
     def closeEvent(self, *args, **kwargs):
         super(MainWindowGUI, self).closeEvent(*args, **kwargs)

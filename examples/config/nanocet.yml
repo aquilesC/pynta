@@ -20,7 +20,7 @@ saving:
 
 GUI:
   length_waterfall: 20 # Total length of the Waterfall (lines)
-  refresh_time: 30 # Refresh rate of the GUI (in ms)
+  refresh_time: 100 # Refresh rate of the GUI (in ms)
 
 camera:
   model: dummy_camera # Should be a python file in model/cameras

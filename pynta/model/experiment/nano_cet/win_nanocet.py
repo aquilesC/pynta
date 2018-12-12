@@ -219,8 +219,8 @@ class NanoCET(BaseExperiment):
                 self.publisher.publish('free_run', [time.time(), img])
 
             self.temp_image = data[-1]
-            if self.tracking:
-               self.temp_locations = self.localize_particles_image(self.temp_image)
+            #if self.tracking:
+            #   self.temp_locations = self.localize_particles_image(self.temp_image)
 
         self.camera.stopAcq()
 

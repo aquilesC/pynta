@@ -9,30 +9,24 @@ import os
 import sys
 import time
 from datetime import datetime
-from multiprocessing import Process, Queue
+from multiprocessing import Process
 
 import h5py
 import numpy as np
 # import psutil
 from PyQt5.QtWidgets import QApplication, QMainWindow
 import pyqtgraph as pg
-from pyqtgraph import ProgressDialog
 from pyqtgraph.Qt import QtGui, QtCore
 from pyqtgraph.dockarea import DockArea, Dock
 # from pynta.Model._session import _session
 # from pynta.View.hdfloader import HDFLoader
 from pynta.view.GUI.camera_viewer_widget import MonitorMainWidget
-from pynta.view.GUI.waterfallWidget import waterfallWidget
-from pynta.view.Monitor.cameraViewer import cameraViewer
-from pynta.view.GUI.config_widget import ConfigWidget
-from pynta.view.Monitor.crossCut import crossCutWindow
+from pynta.view.GUI.old.waterfallWidget import waterfallWidget
 from pynta.view.Monitor.popOut import popOutWindow
-from pynta.view.GUI.messageWidget import messageWidget
+from pynta.view.GUI.old.messageWidget import messageWidget
 from pynta.view.Monitor.specialTaskTrack import specialTaskTracking
-from pynta.view.workerThread import workThread
-from pynta.view.GUI.trajectoryWidget import trajectoryWidget
+
 # from ...Model.workerSaver import workerSaver, clearQueue
-from pynta.view.Monitor import resources
 
 
 pg.setConfigOptions(imageAxisOrder='row-major')

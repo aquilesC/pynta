@@ -36,7 +36,7 @@
      <x>0</x>
      <y>0</y>
      <width>1071</width>
-     <height>21</height>
+     <height>39</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -81,7 +81,7 @@
    </widget>
    <widget class="QMenu" name="menuTracking">
     <property name="title">
-     <string>Tracking</string>
+     <string>&amp;Tracking</string>
     </property>
     <addaction name="actionStart_Tracking"/>
     <addaction name="actionStop_Tracking"/>
@@ -89,6 +89,7 @@
     <addaction name="actionStop_Linking"/>
     <addaction name="actionSave_Tracks"/>
     <addaction name="actionUpdate_Histogram"/>
+    <addaction name="actionTracking_Config"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -321,6 +322,11 @@
   <action name="actionUpdate_Histogram">
    <property name="text">
     <string>Update Histogram</string>
+   </property>
+  </action>
+  <action name="actionTracking_Config">
+   <property name="text">
+    <string>Config</string>
    </property>
   </action>
  </widget>
