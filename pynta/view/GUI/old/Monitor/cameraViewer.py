@@ -15,8 +15,7 @@ import pyqtgraph as pg
 from pyqtgraph import GraphicsLayoutWidget
 from pyqtgraph.Qt import QtGui, QtCore
 
-from pynta.view.workerThread import workThread
-from pynta.view.GUI.camera_viewer_widget import MonitorMainWidget
+from pynta.view.GUI.old.workerThread import workThread
 
 
 class cameraViewer(QtGui.QMainWindow):

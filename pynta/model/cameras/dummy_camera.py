@@ -91,12 +91,11 @@ class camera(cameraBase):
         sample = self.sb.genImage()
         sample = sample.astype('uint8')
         elapsed = time.time() - moment
-        try:
+        if elapsed > self.exposure.m_as('s'):
+            self.logger.warning('Generating a frame takes longer than exposure time')
+        else:
             self.logger.debug('Sleeping for {}'.format(self.exposure.m_as('s') - elapsed))
-            time.sleep(
-                self.exposure.m_as('s') - elapsed)  # to simulate exposure time corrected for data generation delay
-        except:
-            time.sleep(0)
+            time.sleep(self.exposure.m_as('s') - elapsed)  # to simulate exposure time corrected for data generation delay
         return [sample]
 
     def setROI(self, X, Y):

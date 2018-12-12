@@ -6,20 +6,32 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>666</width>
-    <height>1061</height>
+    <width>289</width>
+    <height>504</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>Form</string>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QTabWidget" name="tabWidget">
+  <property name="maximumSize">
+   <size>
+    <width>289</width>
+    <height>504</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Config PyNTA</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTabWidget" name="config_tabs">
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
-     <widget class="QWidget" name="tab">
+     <widget class="QWidget" name="camera_config">
       <attribute name="title">
        <string>Camera</string>
       </attribute>
@@ -32,7 +44,7 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QLineEdit" name="lineEdit">
+        <widget class="QLineEdit" name="camera_model">
          <property name="enabled">
           <bool>true</bool>
          </property>
@@ -58,7 +70,7 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLineEdit" name="lineEdit_2">
+        <widget class="QLineEdit" name="camera_init">
          <property name="enabled">
           <bool>true</bool>
          </property>
@@ -81,7 +93,7 @@
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QLineEdit" name="lineEdit_3">
+        <widget class="QLineEdit" name="camera_camera_model">
          <property name="enabled">
           <bool>true</bool>
          </property>
@@ -101,7 +113,7 @@
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="QLineEdit" name="lineEdit_4"/>
+        <widget class="QLineEdit" name="camera_exposure_time"/>
        </item>
        <item row="4" column="0">
         <widget class="QLabel" name="label_5">
@@ -111,7 +123,7 @@
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="QLineEdit" name="lineEdit_5"/>
+        <widget class="QLineEdit" name="camera_binning_x"/>
        </item>
        <item row="5" column="0">
         <widget class="QLabel" name="label_6">
@@ -121,7 +133,7 @@
         </widget>
        </item>
        <item row="5" column="1">
-        <widget class="QLineEdit" name="lineEdit_6"/>
+        <widget class="QLineEdit" name="camera_binning_y"/>
        </item>
        <item row="6" column="0">
         <widget class="QLabel" name="label_7">
@@ -131,7 +143,7 @@
         </widget>
        </item>
        <item row="6" column="1">
-        <widget class="QLineEdit" name="lineEdit_7"/>
+        <widget class="QLineEdit" name="camera_roi_x1"/>
        </item>
        <item row="7" column="0">
         <widget class="QLabel" name="label_8">
@@ -141,7 +153,7 @@
         </widget>
        </item>
        <item row="7" column="1">
-        <widget class="QLineEdit" name="lineEdit_8"/>
+        <widget class="QLineEdit" name="camera_roi_x2"/>
        </item>
        <item row="8" column="0">
         <widget class="QLabel" name="label_9">
@@ -151,7 +163,7 @@
         </widget>
        </item>
        <item row="8" column="1">
-        <widget class="QLineEdit" name="lineEdit_9"/>
+        <widget class="QLineEdit" name="camera_roi_y1"/>
        </item>
        <item row="9" column="0">
         <widget class="QLabel" name="label_10">
@@ -161,7 +173,7 @@
         </widget>
        </item>
        <item row="9" column="1">
-        <widget class="QLineEdit" name="lineEdit_10"/>
+        <widget class="QLineEdit" name="camera_roi_y2"/>
        </item>
        <item row="10" column="0">
         <widget class="QLabel" name="label_11">
@@ -171,7 +183,7 @@
         </widget>
        </item>
        <item row="10" column="1">
-        <widget class="QLineEdit" name="lineEdit_11">
+        <widget class="QLineEdit" name="camera_background">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -181,7 +193,7 @@
         </widget>
        </item>
        <item row="11" column="1">
-        <widget class="QComboBox" name="comboBox">
+        <widget class="QComboBox" name="camera_background_method">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -199,95 +211,123 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_2">
+     <widget class="QWidget" name="saving_config">
       <attribute name="title">
        <string>Saving</string>
       </attribute>
       <layout class="QFormLayout" name="formLayout_2">
        <item row="0" column="1">
-        <widget class="QLineEdit" name="lineEdit_12"/>
+        <widget class="QLineEdit" name="saving_directory"/>
        </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label_13">
          <property name="text">
           <string>Directory:</string>
          </property>
+         <property name="buddy">
+          <cstring>saving_directory</cstring>
+         </property>
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLineEdit" name="lineEdit_13"/>
+        <widget class="QLineEdit" name="saving_filename_photo"/>
        </item>
        <item row="1" column="0">
         <widget class="QLabel" name="label_14">
          <property name="text">
           <string>Image Filename</string>
          </property>
+         <property name="buddy">
+          <cstring>saving_filename_photo</cstring>
+         </property>
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QLineEdit" name="lineEdit_14"/>
+        <widget class="QLineEdit" name="saving_filename_video"/>
        </item>
        <item row="2" column="0">
         <widget class="QLabel" name="label_15">
          <property name="text">
           <string>Video Filename</string>
          </property>
+         <property name="buddy">
+          <cstring>saving_filename_video</cstring>
+         </property>
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="QLineEdit" name="lineEdit_15"/>
+        <widget class="QLineEdit" name="saving_filename_tracks"/>
        </item>
        <item row="3" column="0">
         <widget class="QLabel" name="label_16">
          <property name="text">
           <string>Locations Filename</string>
          </property>
+         <property name="buddy">
+          <cstring>saving_filename_tracks</cstring>
+         </property>
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="QLineEdit" name="lineEdit_16"/>
+        <widget class="QLineEdit" name="saving_filename_log"/>
        </item>
        <item row="4" column="0">
         <widget class="QLabel" name="label_17">
          <property name="text">
           <string>Log Filename</string>
          </property>
+         <property name="buddy">
+          <cstring>saving_filename_log</cstring>
+         </property>
         </widget>
        </item>
        <item row="5" column="1">
-        <widget class="QLineEdit" name="lineEdit_17"/>
+        <widget class="QLineEdit" name="saving_max_memory">
+         <property name="toolTip">
+          <string>Maximum memory to allocate while saving data</string>
+         </property>
+        </widget>
        </item>
        <item row="5" column="0">
         <widget class="QLabel" name="label_18">
          <property name="text">
           <string>Max Memory (MB)</string>
          </property>
+         <property name="buddy">
+          <cstring>saving_max_memory</cstring>
+         </property>
         </widget>
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_3">
+     <widget class="QWidget" name="other_config">
       <attribute name="title">
        <string>Other</string>
       </attribute>
       <layout class="QFormLayout" name="formLayout_3">
        <item row="0" column="1">
-        <widget class="QLineEdit" name="lineEdit_18"/>
+        <widget class="QLineEdit" name="other_user_name"/>
        </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label_19">
          <property name="text">
           <string>User Name:</string>
          </property>
+         <property name="buddy">
+          <cstring>other_user_name</cstring>
+         </property>
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLineEdit" name="lineEdit_19"/>
+        <widget class="QLineEdit" name="gui_refresh_time"/>
        </item>
        <item row="1" column="0">
         <widget class="QLabel" name="label_20">
          <property name="text">
           <string>GUI Refresh Time (ms)</string>
+         </property>
+         <property name="buddy">
+          <cstring>gui_refresh_time</cstring>
          </property>
         </widget>
        </item>
@@ -296,10 +336,13 @@
          <property name="text">
           <string>Logging Level:</string>
          </property>
+         <property name="buddy">
+          <cstring>logging_level</cstring>
+         </property>
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QComboBox" name="comboBox_2">
+        <widget class="QComboBox" name="logging_level">
          <item>
           <property name="text">
            <string>None</string>
@@ -334,6 +377,37 @@
       </layout>
      </widget>
     </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="apply_button">
+       <property name="text">
+        <string>&amp;Apply</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancel_button">
+       <property name="text">
+        <string>&amp;Cancel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>

@@ -19,20 +19,21 @@ class MainWindowGUI(QMainWindow):
 
         self.central_layout = QHBoxLayout(self.centralwidget)
         self.widget_splitter = QSplitter()
-        self.config_widget = ConfigWidget(self)
+
         self.camera_viewer_widget = CameraViewerWidget()
         self.histogram_tracks_widget = HistogramTracksWidget(self)
-        self.widget_splitter.addWidget(self.config_widget)
         self.widget_splitter.addWidget(self.camera_viewer_widget)
         self.widget_splitter.addWidget(self.histogram_tracks_widget)
-        self.widget_splitter.setSizes((150, 750, 750))
+        self.widget_splitter.setSizes((750, 750))
         self.central_layout.addWidget(self.widget_splitter)
 
+        self.config_widget = ConfigWidget()
         self.config_tracking_widget = ConfigTrackingWidget()
+
 
         self.refresh_timer = QTimer()
         self.refresh_timer.timeout.connect(self.update_gui)
-        # self.refresh_timer.start(refresh_time)
+        self.refresh_timer.start(refresh_time)
 
         self.showMaximized()
 
@@ -45,9 +46,10 @@ class MainWindowGUI(QMainWindow):
 
     def connect_signals(self):
         self.config_tracking_widget.apply_config.connect(self.update_tracking_config)
+        self.config_widget.apply_config.connect(self.update_config)
 
     def connect_buttons(self):
-        self.histogram_tracks_widget.button_histogram.clicked.connect(self.update_histogram)
+        self.histogram_tracks_widget.button_histogram.clicked.connect(self.calculate_histogram)
         self.histogram_tracks_widget.button_tracks.clicked.connect(self.update_tracks)
 
     def connect_actions(self):
@@ -72,8 +74,9 @@ class MainWindowGUI(QMainWindow):
         self.actionShow_Cheatsheet.triggered.connect(self.show_cheat_sheet)
         self.actionAbout.triggered.connect(self.show_about)
         self.actionInitialize_Camera.triggered.connect(self.initialize_camera)
-        self.actionUpdate_Histogram.triggered.connect(self.update_histogram)
+        self.actionUpdate_Histogram.triggered.connect(self.calculate_histogram)
         self.actionTracking_Config.triggered.connect(self.config_tracking_widget.show)
+        self.actionConfiguration.triggered.connect(self.config_widget.show)
 
     def initialize_camera(self):
         self.logger.debug('Initialize Camera')
@@ -142,7 +145,7 @@ class MainWindowGUI(QMainWindow):
         self.logger.debug('Closing the program')
         self.close()
 
-    def update_histogram(self):
+    def calculate_histogram(self):
         self.logger.error('Update Histogram method not defiend')
 
     def update_tracks(self):
@@ -151,9 +154,13 @@ class MainWindowGUI(QMainWindow):
     def update_tracking_config(self, config):
         self.logger.error('Update Tracking config method not defined')
 
-    def closeEvent(self, *args, **kwargs):
-        super(MainWindowGUI, self).closeEvent(*args, **kwargs)
+    def update_config(self, config):
+        self.logger.error('Update Config method not defined')
 
+    def closeEvent(self, *args, **kwargs):
+        self.config_widget.close()
+        self.config_tracking_widget.close()
+        super(MainWindowGUI, self).closeEvent(*args, **kwargs)
 
 
 if __name__ == "__main__":

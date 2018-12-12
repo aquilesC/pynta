@@ -10,6 +10,7 @@ from pandas import DataFrame
 from scipy.stats import stats
 from trackpy.linking import Linker
 
+from pynta import general_stop_event
 from pynta.model.experiment.nano_cet.decorators import make_async_thread
 from pynta.model.experiment.nano_cet.exceptions import DiameterNotDefined, LinkException
 from pynta.model.experiment.subscriber import subscribe
@@ -77,6 +78,9 @@ class LocateParticles:
         self._accumulate_links_event.clear()
         socket = subscribe(self.publisher.port, 'particle_links')
         while not self._accumulate_links_event.is_set():
+            if general_stop_event.is_set():
+                break
+
             topic = socket.recv_string()
             data = socket.recv_pyobj()
             if self.locations.shape[0] == 0:
@@ -97,13 +101,19 @@ class LocateParticles:
         im = tp.imsd(t1, self.config['process']['um_pixel'], self.config['process']['fps'])
         self.histogram_values = []
         for pcle in im:
+            if general_stop_event.is_set():
+                break
+
             data = im[pcle]
+            t = data.index[~np.isnan(data.values)]
+            val = data.values[~np.isnan(data.values)]
             try:
-                slope, intercept, r, p, stderr = stats.linregress(np.log(data.index), np.log(data.values))
+                slope, intercept, r, p, stderr = stats.linregress(np.log(t), np.log(val))
                 self.histogram_values.append([slope, intercept])
             except:
                 pass
         self.calculating_histograms = False
+        self.publisher.publish('histogram', self.histogram_values)
 
     def relevant_tracks(self):
         locations = self.locations.copy()
@@ -120,6 +130,9 @@ class LocateParticles:
         self.stop_tracking()
         self.stop_linking()
         self.stop_accumulate_links()
+        for thread in self._threads:
+            if thread[1].is_alive():
+                self.logger.warning('Finalizing a running thread: {}'.format(thread[0]))
 
     def __del__(self):
         self.stop_tracking()

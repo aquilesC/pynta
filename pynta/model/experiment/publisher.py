@@ -16,6 +16,8 @@ import logging
 from multiprocessing import Queue, Event, Process
 from time import sleep
 import zmq
+
+from pynta import general_stop_event
 from pynta.util.log import get_logger
 
 
@@ -41,6 +43,7 @@ class Publisher:
 
     def stop(self):
         self._event.set()
+        self.empty_queue()
 
     def empty_queue(self):
         """ If the publisher stops before broadcasting all the messages, the Queue may still be using some memory. This
@@ -50,8 +53,6 @@ class Publisher:
         self.logger.info('Emptying the queue of the publisher')
         self.logger.debug('Queue length: {}'.format(self._queue.qsize()))
         self._queue.close()
-        while not self._queue.empty():
-            self._queue.get()
 
     def publish(self, topic, data):
         """ Adapts the data to make it faster to broadcast
@@ -61,7 +62,11 @@ class Publisher:
         :return: None
         """
         self.logger.debug('Adding data of type {} to topic {}'.format(type(data), topic))
-        self._queue.put({'topic': topic, 'data': data})
+        try:
+            self._queue.put({'topic': topic, 'data': data})
+        except AssertionError:
+            # This means the queue has been closed already
+            pass
 
     @property
     def port(self):
@@ -108,6 +113,8 @@ def publisher(queue, event, port):
             logger.debug('Sending {} on {}'.format(data['data'], data['topic']))
             socket.send_string(data['topic'], zmq.SNDMORE)
             socket.send_pyobj(data['data'])
+            if general_stop_event.is_set():
+                break
         sleep(0.05)  # Sleeps 5 milliseconds to be polite with the CPU
 
     sleep(1)  # Gives enough time to the subscribers to update their status

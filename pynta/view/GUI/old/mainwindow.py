@@ -22,9 +22,9 @@ from pyqtgraph.dockarea import DockArea, Dock
 # from pynta.View.hdfloader import HDFLoader
 from pynta.view.GUI.camera_viewer_widget import MonitorMainWidget
 from pynta.view.GUI.old.waterfallWidget import waterfallWidget
-from pynta.view.Monitor.popOut import popOutWindow
+from pynta.view.GUI.old.Monitor import popOutWindow
 from pynta.view.GUI.old.messageWidget import messageWidget
-from pynta.view.Monitor.specialTaskTrack import specialTaskTracking
+from pynta.view.GUI.old.Monitor import specialTaskTracking
 
 # from ...Model.workerSaver import workerSaver, clearQueue
 

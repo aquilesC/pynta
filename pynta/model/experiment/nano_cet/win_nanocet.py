@@ -25,6 +25,7 @@ import h5py as h5py
 import numpy as np
 from multiprocessing import Queue, Process
 
+from pynta import general_stop_event
 from pynta.model.experiment.base_experiment import BaseExperiment
 from pynta.model.experiment.nano_cet.decorators import (check_camera,
                                                         check_not_acquiring,
@@ -46,6 +47,7 @@ class NanoCET(BaseExperiment):
 
     def __init__(self, filename=None):
         super().__init__()
+        self.free_run_running = False
         self.saving_location = False
         self.logger = get_logger(name=__name__)
 
@@ -83,11 +85,11 @@ class NanoCET(BaseExperiment):
         self.keep_locating = True
         self._threads = []
         self._processes = []
-        self._stop_event = Event()
+        self._stop_free_run = Event()
 
         self.location = LocateParticles(self.publisher, self.config['tracking'])
-
-        sys.excepthook = self.sysexcept  # This is very handy in case there are exceptions that force the program to quit.
+        self.fps = 0  # Calculates frames per second based on the number of frames received in a period of time
+        # sys.excepthook = self.sysexcept  # This is very handy in case there are exceptions that force the program to quit.
 
     def initialize_camera(self):
         """ Initializes the camera to be used to acquire data. The information on the camera should be provided in the
@@ -195,11 +197,11 @@ class NanoCET(BaseExperiment):
         self.logger.info('Starting a free run acquisition')
         first = True
         i = 0  # Used to keep track of the number of frames
-        self.keep_acquiring = True  # Change this attribute to stop the acquisition
         self.camera.configure(self.config['camera'])
-        self._stop_event.clear()
+        self._stop_free_run.clear()
         t0 = time.time()
-        while not self._stop_event.is_set():
+        self.free_run_running = True
+        while not self._stop_free_run.is_set():
             if first:
                 self.logger.debug('First frame of a free_run')
                 self.camera.setAcquisitionMode(self.camera.MODE_CONTINUOUS)
@@ -217,8 +219,9 @@ class NanoCET(BaseExperiment):
                 # This will broadcast the data just acquired with the current timestamp
                 # The timestamp is very unreliable, especially if the camera has a frame grabber.
                 self.publisher.publish('free_run', [time.time(), img])
-            print('Average fps: {:4.0f}'.format(i/(time.time()-t0)))
+            self.fps = round(i / (time.time() - t0))
             self.temp_image = data[-1]
+        self.free_run_running = False
         self.camera.stopAcq()
 
     @property
@@ -230,7 +233,7 @@ class NanoCET(BaseExperiment):
         having users dealing with somewhat lower level threading options.
         """
         self.logger.info('Setting the stop_event')
-        self._stop_event.set()
+        self._stop_free_run.set()
 
     def save_image(self):
         """ Saves the last acquired image. The file to which it is going to be saved is defined in the config.
@@ -271,9 +274,6 @@ class NanoCET(BaseExperiment):
             self.logger.debug('Created directory {}'.format(file_dir))
         file_path = os.path.join(file_dir, file_name)
         max_memory = self.config['saving']['max_memory']
-        # self.stream_saving_process = Process(target=worker_saver,
-        #                                      args=(file_path, json.dumps(self.config), self.saver_queue),
-        #                                      kwargs={'max_memory': max_memory})
 
         self.stream_saving_process = Process(target=worker_listener,
                                              args=(file_path, json.dumps(self.config), 'free_run'),
@@ -349,13 +349,19 @@ class NanoCET(BaseExperiment):
     @property
     def save_stream_running(self):
         if self.stream_saving_process is not None:
-            return self.stream_saving_process.is_alive()
+            try:
+                return self.stream_saving_process.is_alive()
+            except:
+                return False
         return False
 
     @property
     def link_particles_running(self):
         if self.link_particles_process is not None:
-            return self.link_particles_process.is_alive()
+            try:
+                return self.link_particles_process.is_alive()
+            except:
+                return False
         return False
 
     def stop_link_particles(self):
@@ -424,11 +430,11 @@ class NanoCET(BaseExperiment):
                     self.do_background_correction = False
 
     def finalize(self):
+        general_stop_event.set()
         self.stop_free_run()
+        time.sleep(.5)
         self.stop_save_stream()
         self.location.finalize()
-        self.keep_acquiring = False
-        self.keep_locating = False
         super().finalize()
 
     def sysexcept(self, exc_type, exc_value, exc_traceback):
