@@ -62,7 +62,7 @@ class NanoCET(BaseExperiment):
         self.max_height = None
         self.background = None
         self.temp_image = None  # Temporary image, used to quickly have access to 'some' data and display it to the user
-        self.temp_locations = None
+        # self.temp_locations = None
         self.movie_buffer = None  # Holds few frames of the movie in order to be able to do some analysis, save later, etc.
         self.last_index = 0  # Last index used for storing to the movie buffer
         self.stream_saving_running = False
@@ -198,6 +198,7 @@ class NanoCET(BaseExperiment):
         self.keep_acquiring = True  # Change this attribute to stop the acquisition
         self.camera.configure(self.config['camera'])
         self._stop_event.clear()
+        t0 = time.time()
         while not self._stop_event.is_set():
             if first:
                 self.logger.debug('First frame of a free_run')
@@ -213,16 +214,16 @@ class NanoCET(BaseExperiment):
                 if self.do_background_correction and self.background_method == self.BACKGROUND_SINGLE_SNAP:
                     img -= self.background
 
-
                 # This will broadcast the data just acquired with the current timestamp
                 # The timestamp is very unreliable, especially if the camera has a frame grabber.
                 self.publisher.publish('free_run', [time.time(), img])
-
+            print('Average fps: {:4.0f}'.format(i/(time.time()-t0)))
             self.temp_image = data[-1]
-            #if self.tracking:
-            #   self.temp_locations = self.localize_particles_image(self.temp_image)
-
         self.camera.stopAcq()
+
+    @property
+    def temp_locations(self):
+        return self.localize_particles_image(self.temp_image)
 
     def stop_free_run(self):
         """ Stops the free run by setting the ``_stop_event``. It is basically a convenience method to avoid

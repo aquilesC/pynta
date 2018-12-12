@@ -26,7 +26,7 @@ class MainWindow(MainWindowGUI):
         if self.experiment.temp_image is not None:
             self.camera_viewer_widget.update_image(self.experiment.temp_image)
             if self.experiment.tracking:
-                locations = self.experiment.localize_particles_image(self.experiment.temp_image)
+                locations = self.experiment.temp_locations
                 self.camera_viewer_widget.draw_target_pointer(locations)
 
     def start_movie(self):
