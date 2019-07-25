@@ -7,7 +7,7 @@
     :meth:`~nanoparticle_tracking.model.cameras.skeleton.BaseCamera` using a Photonic Sicence camera. The controller for this
     camera is :mod:`~nanoparticle_tracking.controller.devices.photonicscience`
 
-    :copyright:  Aquiles Carattino <aquiles@aquicarattino.com>
+    :copyright:  Aquiles Carattino <aquiles@uetke.com>
     :license: GPLv3, see LICENSE for more details
 """
 import numpy as np

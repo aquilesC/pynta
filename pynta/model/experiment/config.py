@@ -8,7 +8,7 @@
     .. TODO:: Changes to config at runtime will have no effect on other processes. Find a way in which config can
               broadcast itself to all the instances of the class
 
-    :copyright:  Aquiles Carattino <aquiles@aquicarattino.com>
+    :copyright:  Aquiles Carattino <aquiles@uetke.com>
     :license: GPLv3, see LICENSE for more details
 """
 from pynta.util import get_logger

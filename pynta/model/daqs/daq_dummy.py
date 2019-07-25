@@ -4,7 +4,7 @@
     ====================================
     Dummy daq class for testing GUI and other functionalities. Based on the skeleton.
 
-    :copyright:  Aquiles Carattino <aquiles@aquicarattino.com>
+    :copyright:  Aquiles Carattino <aquiles@uetke.com>
     :license: GPLv3, see LICENSE for more details
 """
 from .skeleton import DaqBase

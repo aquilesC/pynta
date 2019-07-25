@@ -13,7 +13,7 @@
 
     .. TODO:: Some of the methods do not return the same datatype as the real models
 
-    :copyright:  Aquiles Carattino <aquiles@aquicarattino.com>
+    :copyright:  Aquiles Carattino <aquiles@uetke.com>
     :license: GPLv3, see LICENSE for more details
 
 """

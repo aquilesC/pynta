@@ -11,7 +11,7 @@
     at providing a superior approach, allowing researchers to have real-time information on the sample studied and a
     completely transparent approach regarding algorithms used.
 
-    :copyright:  Aquiles Carattino <aquiles@aquicarattino.com>
+    :copyright:  Aquiles Carattino <aquiles@uetke.com>
     :license: GPLv3, see LICENSE for more details
 """
 import sys
@@ -48,12 +48,10 @@ class NPTracking(BaseExperiment):
     BACKGROUND_SINGLE_SNAP = 1
 
     def __init__(self, filename=None):
-        super().__init__()
+        super().__init__(filename)
         self.free_run_running = False
         self.saving_location = False
         self.logger = get_logger(name=__name__)
-
-        self.load_configuration(filename)
 
         self.dropped_frames = 0
         self.keep_acquiring = True

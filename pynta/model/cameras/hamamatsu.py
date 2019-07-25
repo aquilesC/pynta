@@ -17,7 +17,7 @@
         hsize). This is checked in the function. Changing the ROI cannot be done directly, one first needs to disable it
         and then re-enable.
 
-    :copyright:  Aquiles Carattino <aquiles@aquicarattino.com>
+    :copyright:  Aquiles Carattino <aquiles@uetke.com>
     :license: GPLv3, see LICENSE for more details
 """
 import numpy as np

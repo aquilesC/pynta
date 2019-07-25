@@ -6,7 +6,7 @@
     Adding log capacities to PyNTA
 
 
-    :copyright:  Aquiles Carattino <aquiles@aquicarattino.com>
+    :copyright:  Aquiles Carattino <aquiles@uetke.com>
     :license: AGPLv3, see LICENSE for more details
 """
 import logging

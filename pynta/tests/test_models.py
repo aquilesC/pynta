@@ -5,6 +5,6 @@ thoroughly.
 .. TODO:: Define minimum structure for each kind of model
 .. TODO:: Define tests for dummy-based models.
 
-    :copyright:  Aquiles Carattino <aquiles@aquicarattino.com>
+    :copyright:  Aquiles Carattino <aquiles@uetke.com>
     :license: AGPLv3, see LICENSE for more details.
 """

@@ -25,7 +25,7 @@
 
     :copyright: 2017
 
-    .. sectionauthor:: Aquiles Carattino <aquiles@aquicarattino.com>
+    .. sectionauthor:: Aquiles Carattino <aquiles@uetke.com>
 """
 import zmq
 import h5py
