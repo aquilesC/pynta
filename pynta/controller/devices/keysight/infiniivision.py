@@ -10,7 +10,7 @@
     .. note:: Not all functions were implemented in the code as methods in the class. However a fair amount of the most
         useful ones was formatted according to Lantz standards.
 
-    :copyright:  Aquiles Carattino <aquiles@aquicarattino.com>
+    :copyright:  Aquiles Carattino <aquiles@uetke.com>
     :license: GPLv3, see LICENSE for more details
 """
 

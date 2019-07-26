@@ -6,7 +6,7 @@ the only reasonable thing to do is to check for consistency in methods.
 .. TODO:: Define the minimum structure that makes a controller
 .. TODO:: Implement tests to assert whether the controllers have the needed methods
 
-    :copyright:  Aquiles Carattino <aquiles@aquicarattino.com>
+    :copyright:  Aquiles Carattino <aquiles@uetke.com>
     :license: AGPLv3, see LICENSE for more details
 """
 

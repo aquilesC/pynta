@@ -8,7 +8,7 @@
     
     .. todo:: Unify the main viewer with this one.
     
-    .. sectionauthor:: Aquiles Carattino <aquiles@aquicarattino.com>
+    .. sectionauthor:: Aquiles Carattino <aquiles@uetke.com>
 """
 
 import pyqtgraph as pg
@@ -84,7 +84,7 @@ class cameraViewer(QtGui.QMainWindow):
         """
         if self.parent == None:
             self.emit(QtCore.SIGNAL('closeAll'))
-            self.camera.stopCamera()
+            self.camera.stop_camera()
             self.workerThread.terminate()
             self.close()
         else:

@@ -18,12 +18,13 @@
     .. TODO:: Check whether the serialization of objects with cPickle may be a bottleneck for performance.
 
 
-    :copyright:  Aquiles Carattino <aquiles@aquicarattino.com>
+    :copyright:  Aquiles Carattino <aquiles@uetke.com>
     :license: GPLv3, see LICENSE for more details
 """
 from multiprocessing import Process, Event
 
 import yaml
+
 from pynta.util import get_logger
 from pynta.model.experiment.publisher import Publisher
 from pynta.model.experiment.subscriber import subscriber
@@ -33,14 +34,17 @@ class BaseExperiment:
     """ Base class to define experiments. Should keep track of the basic methods needed regardless of the experiment
     to be performed. For instance, a way to start and a way to finalize a measurement.
     """
-    def __init__(self):
+    def __init__(self, filename=None):
         self.config = {}  # Dictionary storing the configuration of the experiment
         self.logger = get_logger(name=__name__)
         self._threads = []
         self.publisher = Publisher()
         self.publisher.start()
+
         self._connections = []
         self.subscriber_events = []
+        if filename:
+            self.load_configuration(filename)
 
     def stop_publisher(self):
         """ Puts the proper data to the queue in order to stop the running publisher process
