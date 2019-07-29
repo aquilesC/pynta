@@ -43,10 +43,10 @@ class Camera(BaseCamera):
         :return:
         """
         self.camera.initCamera()
-        self.maxWidth = self.GetCCDWidth()
-        self.maxHeight = self.GetCCDHeight()
-        self.X = [0, self.maxWidth-1]
-        self.Y = [0, self.maxHeight-1]
+        self.max_width = self.GetCCDWidth()
+        self.max_height = self.GetCCDHeight()
+        self.X = [0, self.max_width - 1]
+        self.Y = [0, self.max_height - 1]
 
         # This is important to not have shufled patches of the CCD.
         # Have to check documentation!!
@@ -121,7 +121,7 @@ class Camera(BaseCamera):
 #        img = np.reshape(img,(dims[0],dims[1]))
         return img
 
-    def setROI(self, X, Y):
+    def set_ROI(self, X, Y):
         """
         Sets up the ROI. Not all cameras are 0-indexed, so this is an important
         place to define the proper ROI.
@@ -148,9 +148,9 @@ class Camera(BaseCamera):
         self.camera.setPropertyValue("subarray_vsize", vsize)
         self.camera.setPropertyValue("subarray_hsize", hsize)
         self.camera.setSubArrayMode()
-        return self.getSize()
+        return self.get_size()
 
-    def getSize(self):
+    def get_size(self):
         """Returns the size in pixels of the image being acquired. This is useful for checking the ROI settings.
         """
         X = self.camera.getPropertyValue("subarray_hsize")

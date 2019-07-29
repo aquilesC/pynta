@@ -1,12 +1,14 @@
-pynta.model.experiment package
-==============================
+Model for Experiments
+=====================
 
-Subpackages
------------
+Available Experiments
+----------------------
 
 .. toctree::
+    :maxdepth: 1
 
-    pynta.model.experiment.nano_cet
+    model/experiment.fiber_tracking
+    model/experiment.np_tracking
 
 Submodules
 ----------

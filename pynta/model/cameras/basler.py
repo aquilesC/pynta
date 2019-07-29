@@ -10,6 +10,8 @@
     The program forces software trigger during :meth:`~pynta.model.cameras.basler.Camera.initialize`.
 """
 import logging
+import warnings
+from typing import Tuple
 
 from pypylon import pylon
 
@@ -27,16 +29,18 @@ class Camera(BaseCamera):
         self.cam_num = camera
         self.max_width = 0
         self.max_height = 0
-        self.logger = get_logger(name=__name__)
+        self.width = None
+        self.height = None
         self.mode = None
         self.X = None
         self.Y = None
+        self.friendly_name = None
 
     def initialize(self):
         """ Initializes the communication with the camera. Get's the maximum and minimum width. It also forces
         the camera to work on Software Trigger.
 
-        .. warning:: It may be useful to integrate with other types of triggers in applications that need to
+        .. warning:: It may be useful to integrate other types of triggers in applications that need to
             synchronize with other hardware.
 
         """
@@ -51,6 +55,7 @@ class Camera(BaseCamera):
                 self.camera = pylon.InstantCamera()
                 self.camera.Attach(tl_factory.CreateDevice(device))
                 self.camera.Open()
+                self.friendly_name = device.GetFriendlyName()
 
         if not self.camera:
             msg = f'{self.cam_num} not found. Please check your config file and cameras connected'
@@ -73,7 +78,7 @@ class Camera(BaseCamera):
         self.set_acquisition_mode(self.MODE_SINGLE_SHOT)
 
     def set_acquisition_mode(self, mode):
-        self.logger.info(f'Setting acquisition mode to {mode}')
+        logger.info(f'Setting acquisition mode to {mode}')
         if mode == self.MODE_CONTINUOUS:
             logger.debug(f'Setting buffer to {self.camera.MaxNumBuffer.Value}')
             self.camera.OutputQueueSize = self.camera.MaxNumBuffer.Value
@@ -85,7 +90,7 @@ class Camera(BaseCamera):
 
         self.camera.AcquisitionStart.Execute()
 
-    def setROI(self, X: tuple, Y: tuple):
+    def set_ROI(self, X: Tuple[int, int], Y: Tuple[int, int]) -> Tuple[int, int]:
         """ Set up the region of interest of the camera. Basler calls this the
         Area of Interest (AOI) in their manuals. Beware that not all cameras allow
         to set the ROI (especially if they are not area sensors).
@@ -98,18 +103,19 @@ class Camera(BaseCamera):
         :param tuple Y: Vertical limits for the pixels.
 
         """
-        width = abs(X[1]-X[0])
+        width = abs(X[1]-X[0])+1
         width = int(width-width%4)
         x_pos = int(X[0]-X[0]%4)
-        height = int(abs(Y[1]-Y[0]))
+        height = int(abs(Y[1]-Y[0])+1)
         y_pos = int(Y[0]-Y[0]%2)
+        logger.info(f'Updating ROI: (x, y, width, height) = ({x_pos}, {y_pos}, {width}, {height})')
         if x_pos+width > self.max_width:
             raise CameraException('ROI width bigger than camera area')
         if y_pos+height > self.max_height:
             raise CameraException('ROI height bigger than camera area')
 
         # First set offset to minimum, to avoid problems when going to a bigger size
-        self.clearROI()
+        self.clear_ROI()
         logger.debug(f'Setting width to {width}')
         self.camera.Width.SetValue(width)
         logger.debug(f'Setting X offset to {x_pos}')
@@ -118,25 +124,50 @@ class Camera(BaseCamera):
         self.camera.Height.SetValue(height)
         logger.debug(f'Setting Y offset to {y_pos}')
         self.camera.OffsetY.SetValue(y_pos)
-        self.X = [x_pos, x_pos+width]
-        self.Y = [y_pos, y_pos+width]
-        self.width = width
-        self.heigth = height
-        return width, height
+        self.X = (x_pos, x_pos+width)
+        self.Y = (y_pos, y_pos+width)
+        self.width = self.camera.Width.Value
+        self.height = self.camera.Height.Value
+        return self.width, self.height
 
-    def clearROI(self):
+    def clear_ROI(self):
+        """ Resets the ROI to the maximum area of the camera"""
         self.camera.OffsetX.SetValue(self.camera.OffsetX.Min)
         self.camera.OffsetY.SetValue(self.camera.OffsetY.Min)
         self.camera.Width.SetValue(self.camera.Width.Max)
         self.camera.Height.SetValue(self.camera.Height.Max)
 
-    def GetCCDWidth(self):
+    def GetCCDWidth(self) -> int:
+        """ Get the full width of the camera sensor.
+
+        :return int: Maximum width
+
+        .. deprecated:: 0.1.3
+           Use self.max_width instead
+
+        """
+        warnings.warn("This method will be removed in a future release. Use cls.max_width instead", DeprecationWarning)
         return self.max_width
 
-    def GetCCDHeight(self):
+    def GetCCDHeight(self) -> int:
+        """ Get the full height (in pixels) of the camera sensor.
+
+        :return int: Maximum height
+
+        .. deprecated:: 0.1.3
+            Use self.max_height instead
+
+        """
+        warnings.warn("This method will be removed in a future release. Use cls.max_height instead", DeprecationWarning)
         return self.max_height
 
-    def getSize(self):
+    def get_size(self) -> Tuple[int, int]:
+        """ Get the size of the current Region of Interest (ROI). Remember that the actual size may be different from
+        the size that the user requests, given that not all cameras accept any pixel. For example, Basler has some
+        restrictions regarding corner pixels and possible widths.
+
+        :return tuple: (Width, Height)
+        """
         return self.camera.Width.Value, self.camera.Height.Value
 
     def trigger_camera(self):
@@ -181,8 +212,12 @@ class Camera(BaseCamera):
         return [i.T for i in img]  # Transpose to have the correct size
 
     def stop_camera(self):
+        logger.info('Stopping camera')
         self.camera.StopGrabbing()
         self.camera.AcquisitionStop.Execute()
+
+    def __str__(self):
+        return self.friendly_name
 
     def __del__(self):
         self.camera.Close()

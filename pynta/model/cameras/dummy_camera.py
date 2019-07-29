@@ -98,7 +98,7 @@ class Camera(BaseCamera):
             time.sleep(self.exposure.m_as('s') - elapsed)  # to simulate exposure time corrected for data generation delay
         return [sample]
 
-    def setROI(self, X, Y):
+    def set_ROI(self, X, Y):
         """
         Sets up the ROI. Not all cameras are 0-indexed, so this is an important
         place to define the proper ROI.
@@ -116,9 +116,9 @@ class Camera(BaseCamera):
         self.Y = Y
         self.X[1] -= 1
         self.Y[1] -= 1
-        return self.getSize()
+        return self.get_size()
 
-    def getSize(self):
+    def get_size(self):
         """
         :return: Returns the size in pixels of the image being acquired. This is useful for checking the ROI settings.
         """
@@ -142,7 +142,7 @@ class Camera(BaseCamera):
         """
         return self.maxY
 
-    def setBinning(self, xbin, ybin):
+    def set_binning(self, xbin, ybin):
         """Sets the binning of the camera if supported. Has to check if binning in X/Y can be different or not, etc.
 
         :param: xbin: binning in x
