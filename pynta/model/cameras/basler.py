@@ -1,13 +1,13 @@
 """
     Basler Camera Model
     ===================
-    Model to adapt PyPylon to the needs of Pynta. PyPylon is only a wrapper for Pylon, thus the documentation
+    Model to adapt PyPylon to the needs of PyNTA. PyPylon is only a wrapper for Pylon, thus the documentation
     has to be found in the folder where Pylon was installed. It refers only to the C++ documentation, which is
     very extensive, but not necessarily clear.
 
     Some assumptions
     ----------------
-    The program forces software trigger during :meth:`~nanoparticle_tracking.model.cameras.basler.Camera.initialize`.
+    The program forces software trigger during :meth:`~pynta.model.cameras.basler.Camera.initialize`.
 """
 import logging
 
@@ -29,13 +29,15 @@ class Camera(BaseCamera):
         self.max_height = 0
         self.logger = get_logger(name=__name__)
         self.mode = None
+        self.X = None
+        self.Y = None
 
     def initialize(self):
         """ Initializes the communication with the camera. Get's the maximum and minimum width. It also forces
         the camera to work on Software Trigger.
 
         .. warning:: It may be useful to integrate with other types of triggers in applications that need to
-        synchronize with other hardware.
+            synchronize with other hardware.
 
         """
         logger.debug('Initializing Basler Camera')
@@ -44,14 +46,28 @@ class Camera(BaseCamera):
         if len(devices) == 0:
             raise CameraNotFound('No camera found')
 
-        self.camera = pylon.InstantCamera()
-        self.camera.Attach(tl_factory.CreateDevice(devices[self.cam_num]))
-        self.camera.Open()
+        for device in devices:
+            if self.cam_num in device.GetFriendlyName():
+                self.camera = pylon.InstantCamera()
+                self.camera.Attach(tl_factory.CreateDevice(device))
+                self.camera.Open()
+
+        if not self.camera:
+            msg = f'{self.cam_num} not found. Please check your config file and cameras connected'
+            logger.error(msg)
+            raise CameraNotFound(msg)
 
         logger.info(f'Loaded camera {self.camera.GetDeviceInfo().GetModelName()}')
 
         self.max_width = self.camera.Width.Max
         self.max_height = self.camera.Height.Max
+        offsetX = self.camera.OffsetX.Value
+        offsetY = self.camera.OffsetY.Value
+        width = self.camera.Width.Value
+        height = self.camera.Height.Value
+        self.X = (offsetX, offsetX+width)
+        self.Y = (offsetY, offsetY+height)
+
         self.camera.RegisterConfiguration(pylon.SoftwareTriggerConfiguration(), pylon.RegistrationMode_ReplaceAll,
                                           pylon.Cleanup_Delete)
         self.set_acquisition_mode(self.MODE_SINGLE_SHOT)
@@ -69,12 +85,17 @@ class Camera(BaseCamera):
 
         self.camera.AcquisitionStart.Execute()
 
-    def setROI(self, X, Y):
+    def setROI(self, X: tuple, Y: tuple):
         """ Set up the region of interest of the camera. Basler calls this the
         Area of Interest (AOI) in their manuals. Beware that not all cameras allow
         to set the ROI (especially if they are not area sensors).
         Both the corner positions and the width/height need to be multiple of 4.
         Compared to Hamamatsu, Baslers provides a very descriptive error warning.
+
+        :param tuple X: Horizontal limits for the pixels, 0-indexed and including the extremes. You can also check
+            :mod:`Base Camera <pynta.model.cameras.base_camera>`
+            To select, for example, the first 100 horizontal pixels, you would supply the following: (0, 99)
+        :param tuple Y: Vertical limits for the pixels.
 
         """
         width = abs(X[1]-X[0])

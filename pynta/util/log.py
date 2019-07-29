@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     nanoparticle_tracking.util.log.py
-    =================
+    =================================
 
     Adding log capacities to PyNTA
 

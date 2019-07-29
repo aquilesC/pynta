@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    Base Camera
-    ===========
+    Base Camera Model
+    =================
     Camera class with the base methods. Having a base class exposes the general API for working with cameras.
     This file is important to keep track of the methods which are exposed to the View.
     The class BaseCamera should be subclassed when developing new Models for other cameras. This ensures that all the

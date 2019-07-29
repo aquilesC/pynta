@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     hamamatsu_camera.py
-    ~~~~~~~~~~~~~~~~~~~~
+    ===================
     File taken from `ZhuangLab <https://github.com/ZhuangLab/storm-control>`_
 
     A ctypes based interface to Hamamatsu cameras.

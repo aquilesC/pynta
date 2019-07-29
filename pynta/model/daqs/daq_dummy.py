@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    nanoparticle_tracking.model.daqs.daq_dummy.py
-    ====================================
+    pynta.model.daqs.daq_dummy.py
+    =============================
     Dummy daq class for testing GUI and other functionalities. Based on the skeleton.
 
     :copyright:  Aquiles Carattino <aquiles@uetke.com>

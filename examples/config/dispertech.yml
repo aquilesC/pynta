@@ -27,7 +27,7 @@ GUI:
 
 camera_fiber:
   model: basler # Should be a python file in model/cameras
-  init: dart # Initial arguments to pass when creating the camera
+  init: daA1280 # Initial arguments to pass when creating the camera
   #extra_args: [extra, arguments] # Extra arguments that can be passed when constructing the model
   model_camera: ACE # To keep a registry of which camera was used in the experiment
   exposure_time: 30ms # Initial exposure time (in ms)
@@ -43,7 +43,7 @@ camera_fiber:
 
 camera_microscope:
   model: basler # Should be a python file in model/cameras
-  init: ace # Initial arguments to pass when creating the camera
+  init: acA1920 # Initial arguments to pass when creating the camera
   #extra_args: [extra, arguments] # Extra arguments that can be passed when constructing the model
   model_camera: ACE # To keep a registry of which camera was used in the experiment
   exposure_time: 30ms # Initial exposure time (in ms)

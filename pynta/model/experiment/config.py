@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     Experiment Configuration
-    ===========================
+    ========================
     Class which holds some parameters that need to be used throughout the lifetime of a program. Keeping them in a
     separate class gives great flexibility, because it allows to overwrite values at run time.
 

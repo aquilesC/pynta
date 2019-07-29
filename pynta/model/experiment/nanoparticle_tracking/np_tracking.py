@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    nanoparticle_tracking.py
-    ===========
+    np_tracking.py
+    ==============
     Nanoparticle tracking is a technique that allows to measure the size of very small objects. The core idea is that
     by locating objects subject to brownian motion, it is possible to reconstruct their movement, which in turn can be
     fitted to a model which depends on properties of the medium (i.e. viscosity) and on  the diameter of the particles.

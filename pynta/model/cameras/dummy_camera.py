@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-    dummyCamera.py
-    ~~~~~~~~~~~~~~
+    Dummy Camera Model
+    ==================
     Dummy camera class for testing GUI and other functionality. This specific version generates randomly diffusing
-    particles. However, the settings are controlled in a different class, SimBrownian.
+    particles. However, the settings are controlled in a different class, :mod:`SimBrownian <pynta.model.cameras.simulate_brownian>`.
 
     .. TODO:: The camera defines plenty of parameters that are not used or that they are confusing later on. Rasing
-    exceptions does not happen even if trying to extend beyond the maximum dimensions of the CCD.
+        exceptions does not happen even if trying to extend beyond the maximum dimensions of the CCD.
 
     .. TODO:: The parameters for the simulation of the brownian motion should be made explicitly here, in such a way
-    that can be used from within the config file as well.
+        that can be used from within the config file as well.
 
     .. TODO:: Some of the methods do not return the same datatype as the real models
 

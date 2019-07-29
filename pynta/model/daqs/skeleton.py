@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     base_camera.py
-    ~~~~~~~~~~~
+    ==============
 
     .. note:: **IMPORTANT** Whatever new function is implemented in a specific model, it should be first declared in the
     laserBase class. In this way the other models will have access to the method and the program will keep running
