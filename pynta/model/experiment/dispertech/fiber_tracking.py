@@ -17,6 +17,7 @@
 import importlib
 import sqlite3
 from pathlib import Path
+from threading import Thread
 
 from pynta.model.experiment.base_experiment import BaseExperiment
 from pynta.model.experiment.dispertech.util import load_camera_module, instantiate_camera
@@ -46,7 +47,7 @@ class FiberTracking(BaseExperiment):
             'fiber': None,
             'microscope': None
         }
-        self.initialize_threads = []
+        self.initialize_threads = []  # Threads to initialize several devices at the same time
 
     def initialize_cameras(self):
         """ The experiment requires two cameras, and they need to be initialized before we can proceed with the
@@ -76,7 +77,26 @@ class FiberTracking(BaseExperiment):
         """
         logger.info('Initializing electronics')
 
-    def initialize(self):
+    def set_up(self):
         """ Initializes all the devices at the same time using threads.
         """
-        self.initialize_threads
+        self.initialize_threads = [
+            Thread(target=self.initialize_cameras),
+            Thread(target=self.initialize_electronics),
+            Thread(target=self.initialize_mirror),
+        ]
+        for thread in self.initialize_threads:
+            thread.start()
+
+    @property
+    def initializing(self):
+        """ Checks whether the devices are initializing or not. It does not distinguish between initialization not
+        triggered yet and initialization finalized.
+        """
+        return any([t.is_alive() for t in self.initialize_threads])
+
+    def finalize(self):
+        logger.info(f'Finalizing The Experiment {self}')
+
+    def __str__(self):
+        return "Nanopartilce Tracking Experiment"

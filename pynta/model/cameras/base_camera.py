@@ -27,7 +27,7 @@
 """
 import numpy as np
 
-from pynta.model.cameras.decorators import not_implemented
+from pynta.model.decorators import not_implemented
 from pynta.util.log import get_logger
 from pynta import Q_
 
@@ -44,7 +44,7 @@ class BaseCamera:
     }
 
     def __init__(self, camera):
-        self.camera = camera
+        self.cam_num = camera
         self.running = False
         self.max_width = 0
         self.max_height = 0

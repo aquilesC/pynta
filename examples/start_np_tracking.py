@@ -5,7 +5,7 @@ from pynta.model.experiment.nanoparticle_tracking.np_tracking import NPTracking
 from pynta.util.log import get_logger
 
 
-logger = get_logger()  # 'nanoparticle_tracking.model.experiment.nanoparticle_tracking.saver'
+logger = get_logger('pynta')  # 'nanoparticle_tracking.model.experiment.nanoparticle_tracking.saver'
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)

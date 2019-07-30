@@ -25,6 +25,7 @@ from multiprocessing import Process, Event
 
 import yaml
 
+from pynta.model.decorators import not_implemented
 from pynta.util import get_logger
 from pynta.model.experiment.publisher import Publisher
 from pynta.model.experiment.subscriber import subscriber
@@ -138,6 +139,7 @@ class BaseExperiment:
                 alive_threads.append(thread)
         return alive_threads
 
+    @not_implemented
     def set_up(self):
         """ Needs to be overridden by child classes.
         """

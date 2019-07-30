@@ -5,7 +5,7 @@ Publisher
 
 Publishers are responsible for broadcasting the message over the ZMQ PUB/SUB architecture. The publisher runs
 continuously on a separated process and grabs elements from a queue, which in turn are sent through a socket to any
-other processes listening. 
+other processes listening.
 
 .. TODO:: In the current implementation, data is serialized for being added to a Queue, then deserialized by the
     publisher and serialized again to be sent. These three steps could be simplify into one if, for example, one assumes
@@ -123,7 +123,6 @@ def publisher(queue, event, port):
     logger.debug(f'Binding publisher on port {port}')
     context = zmq.Context()
     socket = context.socket(zmq.PUB)
-    print(port_pub)
     socket.bind("tcp://*:%s" % port_pub)
     sleep(1)    # It takes a time for subscribers to propagate to the publisher.
                 # Without this sleep the first packages may be lost

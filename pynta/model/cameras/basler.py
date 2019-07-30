@@ -217,10 +217,16 @@ class Camera(BaseCamera):
         self.camera.AcquisitionStop.Execute()
 
     def __str__(self):
-        return self.friendly_name
+        if self.friendly_name:
+            return self.friendly_name
+        return "Basler Camera"
 
     def __del__(self):
-        self.camera.Close()
+        try:
+            self.camera.Close()
+        except:
+            pass
+
 
 
 if __name__ == '__main__':

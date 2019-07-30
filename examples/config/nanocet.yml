@@ -27,7 +27,7 @@ GUI:
 
 camera:
   model: basler # Should be a python file in model/cameras
-  init: 0 # Initial arguments to pass when creating the camera
+  init: ac # Initial arguments to pass when creating the camera
   #extra_args: [extra, arguments] # Extra arguments that can be passed when constructing the model
   model_camera: ACE # To keep a registry of which camera was used in the experiment
   exposure_time: 30ms # Initial exposure time (in ms)

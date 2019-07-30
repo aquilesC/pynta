@@ -9,13 +9,15 @@
     :copyright:  Aquiles Carattino <aquiles@uetke.com>
     :license: AGPLv3, see LICENSE for more details
 """
-import logging
+import logging, multiprocessing
 
 
-DEFAULT_FMT = "[%(levelname)8s]%(asctime)s %(name)s: %(message)s"
+DEFAULT_FMT = "[%(levelname)8s] %(asctime)s %(name)s: %(message)s"
 
-def get_logger(name='nanoparticle_tracking', add_null_handler=True):
-    logger = logging.getLogger(name) #, add_null_handler=add_null_handler)
+
+def get_logger(name='pynta', level=logging.INFO):
+    logger = multiprocessing.get_logger()
+    logger.setLevel(level)
     return logger
 
 
@@ -26,14 +28,17 @@ def log_to_screen(level=logging.INFO, fmt=None):
     fmt = fmt or DEFAULT_FMT
     handler = logging.StreamHandler()
     handler.setLevel(level)
-    handler.setFormatter(fmt)
+    formatter = logging.Formatter(fmt)
+    handler.setFormatter(formatter)
     PYNTA_LOGGER.addHandler(handler)
-    return
+    return handler
+
 
 def log_to_file(filename, level=logging.INFO, fmt=None):
     fmt = fmt or DEFAULT_FMT
     handler = logging.FileHandler(filename)
     handler.setLevel(level)
-    handler.setFormatter(fmt)
+    formatter = logging.Formatter(fmt)
+    handler.setFormatter(formatter)
     PYNTA_LOGGER.addHandler(handler)
-    return
+    return handler
