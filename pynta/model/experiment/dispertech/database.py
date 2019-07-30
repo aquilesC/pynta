@@ -73,4 +73,8 @@ def store_config(db: Tuple[sqlite3.Connection, sqlite3.Cursor], config: dict) ->
     cur = db[1]
     data = yaml.dump(config)
     sql_command = f"""INSERT INTO configs (name, description) VALUES 
+    ('Saved Config', '{data}')
     """
+    cur.execute(sql_command)
+    conn.commit()
+

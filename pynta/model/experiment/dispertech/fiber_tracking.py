@@ -30,7 +30,10 @@ class FiberTracking(BaseExperiment):
     """ Experiment class for performing nanoparticle tracking analysis inside a hollow optical fiber.
     """
     SINGLE_SNAP_BKG = 0
+    """Uses only one image to correct the background"""
+
     ROLLING_AVERAGE = 1
+    """Uses a window of averages to correct the background"""
 
     BACKGROUND_CORRECTION = (
         ('single_snap', SINGLE_SNAP_BKG),
@@ -43,6 +46,7 @@ class FiberTracking(BaseExperiment):
             'fiber': None,
             'microscope': None
         }
+        self.initialize_threads = []
 
     def initialize_cameras(self):
         """ The experiment requires two cameras, and they need to be initialized before we can proceed with the
@@ -57,7 +61,7 @@ class FiberTracking(BaseExperiment):
 
         logger.info('Initializing the cameras...')
         for k, camera in self.cameras.items():
-            logger.info(f'Initializing {camera}')
+            logger.info(f'Initializing {k} camera: {camera}')
             camera.initialize()
 
     def initialize_mirror(self):
@@ -68,7 +72,11 @@ class FiberTracking(BaseExperiment):
 
     def initialize_electronics(self):
         """ Routine to initialize the rest of the electronics. For example, the LED's can be set to a default on/off
-        state. This is also used to measure the temperature
+        state. This is also used to measure the temperature.
         """
         logger.info('Initializing electronics')
 
+    def initialize(self):
+        """ Initializes all the devices at the same time using threads.
+        """
+        self.initialize_threads
