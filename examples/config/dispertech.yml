@@ -57,6 +57,11 @@ camera_microscope:
   background: '' # Full path to background file, or empty for none.
   background_method: [Method1, Method2]
 
+mirror:
+  model: mechonics # Should be a Python file in model/motors
+  init: 0  # Initial arguments
+
+
 waterfall: # Parameters for calculating the waterfall plot
   length: 20  # The total length of the waterfall (lines)
   vertical_bin: 10  # Total number of lines of the CCD to integrate

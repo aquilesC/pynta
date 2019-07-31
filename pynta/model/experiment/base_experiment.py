@@ -44,6 +44,7 @@ class BaseExperiment:
 
         self._connections = []
         self.subscriber_events = []
+        self.initialize_threads = []  # Threads to initialize several devices at the same time
         if filename:
             self.load_configuration(filename)
 
@@ -109,6 +110,13 @@ class BaseExperiment:
         except Exception as e:
             self.logger.exception('Unhandled exception')
             raise
+
+    @property
+    def initializing(self):
+        """ Checks whether the devices are initializing or not. It does not distinguish between initialization not
+        triggered yet and initialization finalized.
+        """
+        return any([t.is_alive() for t in self.initialize_threads])
 
     def clear_threads(self):
         """ Keep only the threads that are alive.

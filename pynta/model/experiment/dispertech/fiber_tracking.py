@@ -43,33 +43,18 @@ class FiberTracking(BaseExperiment):
 
     def __init__(self, filename=None):
         super().__init__(filename)
-        self.cameras = {
-            'fiber': None,
-            'microscope': None
-        }
-        self.initialize_threads = []  # Threads to initialize several devices at the same time
+        self.camera = None
 
-    def initialize_cameras(self):
+    def initialize_camera(self):
         """ The experiment requires two cameras, and they need to be initialized before we can proceed with the
         measurement. This requires two entries in the config file with names ``camera_fiber``, which refers to the
         camera which monitors the end of the fiber and ``camera_microscope``, which is the one that is used to do the
         real measurement.
 
         """
-
-        self.cameras['fiber'] = instantiate_camera(config=self.config['camera_fiber'])
-        self.cameras['microscope'] = instantiate_camera(config=self.config['camera_microscope'])
-
-        logger.info('Initializing the cameras...')
-        for k, camera in self.cameras.items():
-            logger.info(f'Initializing {k} camera: {camera}')
-            camera.initialize()
-
-    def initialize_mirror(self):
-        """ Routine to initialize the movable mirror. The steps in this method should be those needed for having the
-        mirror in a known position (i.e. the homing procedure).
-        """
-        logger.info('Homing mirror')
+        self.camera = instantiate_camera(config=self.config['camera_microscope'])
+        logger.info(f'Initializing {self.camera}')
+        self.camera.initialize()
 
     def initialize_electronics(self):
         """ Routine to initialize the rest of the electronics. For example, the LED's can be set to a default on/off
@@ -81,22 +66,16 @@ class FiberTracking(BaseExperiment):
         """ Initializes all the devices at the same time using threads.
         """
         self.initialize_threads = [
-            Thread(target=self.initialize_cameras),
+            Thread(target=self.initialize_camera),
             Thread(target=self.initialize_electronics),
-            Thread(target=self.initialize_mirror),
         ]
         for thread in self.initialize_threads:
             thread.start()
-
-    @property
-    def initializing(self):
-        """ Checks whether the devices are initializing or not. It does not distinguish between initialization not
-        triggered yet and initialization finalized.
-        """
-        return any([t.is_alive() for t in self.initialize_threads])
 
     def finalize(self):
         logger.info(f'Finalizing The Experiment {self}')
 
     def __str__(self):
         return "Nanopartilce Tracking Experiment"
+
+
