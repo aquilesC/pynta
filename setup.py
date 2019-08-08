@@ -25,8 +25,19 @@ setup(
         'Programming Language :: Python',
     ],
     include_package_data=True,
-    install_requires=['pyqt5', 'numpy', 'pyqtgraph', 'pint', 'h5py', 'trackpy', 'pandas', 'pyyaml',
-                      'pyzmq', 'numba'],
+    install_requires=['pyqt5',
+                      'numpy',
+                      'pyqtgraph',
+                      'pint',
+                      'h5py',
+                      'trackpy',
+                      'pandas',
+                      'pyyaml',
+                      'pyzmq',
+                      'numba',
+                      'pyvisa'
+                      'pyvisa-py'
+                      ],
     long_description=long_description,
     long_description_content_type="text/markdown",
     entry_points={

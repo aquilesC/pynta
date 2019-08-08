@@ -10,7 +10,10 @@
 
 import pyvisa
 # TODO: Make more flexible which bacend will be used for PyVisa
+from pynta.util import get_logger
+
 rm = pyvisa.ResourceManager('@py')
+logger = get_logger(__name__)
 
 
 class Arduino:
@@ -28,7 +31,12 @@ class Arduino:
             self.port = port
             self.rsc = rm.open_resource(self.port)
 
+    def query(self, command):
+        logger.debug(f'Querying command {command}')
+        self.rsc.query(command)
+
     def write(self, command):
+        logger.debug(f'Writing command {command}')
         self.rsc.write(command)
 
     def close(self):
