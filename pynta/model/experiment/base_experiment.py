@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     base_experiment.py
-    ~~~~~~~~~~~~~~~~~~
+    ==================
     Base class for the experiments. ``BaseExperiment`` defines the common patterns that every experiment should have.
     Importantly, it starts an independent process called publisher, that will be responsible for broadcasting messages
     that are appended to a queue. The messages rely on the pyZMQ library and should be tested further in order to
@@ -25,6 +25,7 @@ from multiprocessing import Process, Event
 
 import yaml
 
+from pynta.model.decorators import not_implemented
 from pynta.util import get_logger
 from pynta.model.experiment.publisher import Publisher
 from pynta.model.experiment.subscriber import subscriber
@@ -43,6 +44,7 @@ class BaseExperiment:
 
         self._connections = []
         self.subscriber_events = []
+        self.initialize_threads = []  # Threads to initialize several devices at the same time
         if filename:
             self.load_configuration(filename)
 
@@ -109,6 +111,13 @@ class BaseExperiment:
             self.logger.exception('Unhandled exception')
             raise
 
+    @property
+    def initializing(self):
+        """ Checks whether the devices are initializing or not. It does not distinguish between initialization not
+        triggered yet and initialization finalized.
+        """
+        return any([t.is_alive() for t in self.initialize_threads])
+
     def clear_threads(self):
         """ Keep only the threads that are alive.
         """
@@ -138,6 +147,7 @@ class BaseExperiment:
                 alive_threads.append(thread)
         return alive_threads
 
+    @not_implemented
     def set_up(self):
         """ Needs to be overridden by child classes.
         """

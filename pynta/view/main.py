@@ -53,8 +53,8 @@ class MainWindow(MainWindowGUI):
         X, Y = self.camera_viewer_widget.get_roi_values()
         self.experiment.set_roi(X, Y)
         X, Y = self.experiment.camera.X, self.experiment.camera.Y
-        X[1] += 1
-        Y[1] += 1
+        X = (X[0], X[1]+1)
+        Y = (Y[0], Y[1]+1)
         self.camera_viewer_widget.set_roi_lines(X, Y)
         self.refresh_timer.start()
 

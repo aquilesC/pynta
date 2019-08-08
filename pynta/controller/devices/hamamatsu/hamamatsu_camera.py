@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-    hamamatsu_camera.py
-    ~~~~~~~~~~~~~~~~~~~~
-    File taken from `ZhuangLab <https://github.com/ZhuangLab/storm-control>`_
+    Hamamatsu Driver
+    ================
+    Original file taken from `ZhuangLab <https://github.com/ZhuangLab/storm-control>`_
 
-    A ctypes based interface to Hamamatsu cameras.
-    (tested on a sCMOS Flash 4.0).
+    A ctypes based interface to Hamamatsu cameras. (tested on a sCMOS Flash 4.0).
 
     The documentation is a little confusing to me on this subject..
     I used c_int32 when this is explicitly specified, otherwise I use c_int.
@@ -14,9 +13,10 @@
 
     .. todo:: How to stream 2048 x 2048 at max frame rate to the flash disk? The Hamamatsu software can do this.
 
-    Copyright: Hazen Babcock
     This file was adapted to Python 3 and documented in the numpy style by Aquiles Carattino <aquiles@uetke.com>
 
+    :copyright:  Hazen Babcock
+    :license: The MIT License
 """
 
 import ctypes
@@ -669,21 +669,22 @@ class HamamatsuCamera():
 
 
 class HamamatsuCameraMR(HamamatsuCamera):
-    """# Memory recycling camera class.
-    This version allocates "user memory" for the Hamamatsu camera
-    buffers. This memory is also the location of the storage for
-    the np_array element of a HCamData() class. The memory is
-    allocated once at the beginning, then recycled. This means
-    that there is a lot less memory allocation & shuffling compared
-    to the basic class, which performs one allocation and (I believe)
-    two copies for each frame that is acquired.
-    WARNING: There is the potential here for chaos. Since the memory
-      is now shared there is the possibility that downstream code
-      will try and access the same bit of memory at the same time
-      as the camera and this could end badly.
-    FIXME: Use lockbits (and unlockbits) to avoid memory clashes?
-      This would probably also involve some kind of reference counting
-      scheme."""
+    """
+    Memory recycling camera class.
+
+    This version allocates "user memory" for the Hamamatsu camera buffers. This memory is also the location of the
+    storage for the np_array element of a HCamData() class. The memory is allocated once at the beginning, then
+    recycled. This means that there is a lot less memory allocation & shuffling compared to the basic class, which
+    performs one allocation and (I believe) two copies for each frame that is acquired.
+
+    .. warning:: There is the potential here for chaos. Since the memory is now shared there is the possibility that
+        downstream code will try and access the same bit of memory at the same time as the camera and this could end
+        badly.
+
+    .. TODO:: Use lockbits (and unlockbits) to avoid memory clashes?
+        This would probably also involve some kind of reference counting scheme.
+
+    """
 
     def __init__(self, camera_id):
         """@param camera_id The id of the camera."""
@@ -697,12 +698,13 @@ class HamamatsuCameraMR(HamamatsuCamera):
         self.setPropertyValue("output_trigger_kind[0]", 2)
 
     def getFrames(self):
-        """Gets all of the available frames.
-        This will block waiting for new frames even if there new frames
+        """Gets all of the available frames. This will block waiting for new frames even if there new frames
         available when it is called.
-        FIXME: It does not always seem to block? The length of frames can
-               be zero. Are frames getting dropped? Some sort of race condition?
-        return [frames, [frame x size, frame y size]]
+
+        .. TODO:: It does not always seem to block? The length of frames can be zero. Are frames getting dropped?
+            Some sort of race condition?
+
+        :return list: [frames, [frame x size, frame y size]]
         """
 
         frames = []

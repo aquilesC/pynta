@@ -27,23 +27,23 @@ GUI:
 
 camera_fiber:
   model: basler # Should be a python file in model/cameras
-  init: dart # Initial arguments to pass when creating the camera
+  init: daA1280 # Initial arguments to pass when creating the camera
   #extra_args: [extra, arguments] # Extra arguments that can be passed when constructing the model
-  model_camera: ACE # To keep a registry of which camera was used in the experiment
+  model_camera: Dart # To keep a registry of which camera was used in the experiment
   exposure_time: 30ms # Initial exposure time (in ms)
   fps: 30  # Frames per second, should either be defined by the camera or within the model based on timing
   binning_x: 1 # Binning
   binning_y: 1
   roi_x1: 0
-  roi_x2: 1932
+  roi_x2: 1280
   roi_y1: 0
-  roi_y2: 1200
+  roi_y2: 960
   background: '' # Full path to background file, or empty for none.
   background_method: [Method1, Method2]
 
 camera_microscope:
   model: basler # Should be a python file in model/cameras
-  init: ace # Initial arguments to pass when creating the camera
+  init: acA1920 # Initial arguments to pass when creating the camera
   #extra_args: [extra, arguments] # Extra arguments that can be passed when constructing the model
   model_camera: ACE # To keep a registry of which camera was used in the experiment
   exposure_time: 30ms # Initial exposure time (in ms)
@@ -51,11 +51,16 @@ camera_microscope:
   binning_x: 1 # Binning
   binning_y: 1
   roi_x1: 0
-  roi_x2: 1932
+  roi_x2: 1920
   roi_y1: 0
   roi_y2: 1200
   background: '' # Full path to background file, or empty for none.
   background_method: [Method1, Method2]
+
+mirror:
+  model: mechonics # Should be a Python file in model/motors
+  init: 0  # Initial arguments
+
 
 waterfall: # Parameters for calculating the waterfall plot
   length: 20  # The total length of the waterfall (lines)

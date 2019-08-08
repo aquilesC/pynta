@@ -31,13 +31,13 @@ where ``config.yml`` has to be replaced by the name of your file. You can explor
 ## First Steps with PyNTA
 By default, PyNTA comes configures to use synthetic data. The images displayed are simulated random movements of particles. You can use that data to test the program regardless of whether you have a camera available or not. 
 
-You can start by aquiring images and movies. Stream the data to the hard drive and do real time tracking and characterization based on the diffusion of the particles. You can find more information on the [online documentation](http://nanoepics.github.io/pynta).
+You can start by aquiring images and movies. Stream the data to the hard drive and do real time tracking and characterization based on the diffusion of the particles. You can find more information on the [online documentation](https://python-nta.readthedocs.io).
 
 ## Supported cameras
 We currently support the following cameras:
-* **Hamamatsu Orca** (which interface through DCAM-API)
+* **Hamamatsu Orca** (Interfaced through DCAM-API)
 * **Photonic Science** 
-* **Basler**
+* **Basler** (Interfaced through PyPylon)
 
 The code has been structured in such a way that adding support for other cameras is straightforward, and also the simulation of experiments is easy to implement. You can read the guide on how to contribute to the code. 
 
