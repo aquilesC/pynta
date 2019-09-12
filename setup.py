@@ -35,7 +35,7 @@ setup(
                       'pyyaml',
                       'pyzmq',
                       'numba',
-                      'pyvisa'
+                      'pyvisa',
                       'pyvisa-py'
                       ],
     long_description=long_description,

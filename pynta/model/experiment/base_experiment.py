@@ -101,7 +101,7 @@ class BaseExperiment:
         self.logger.info('Loading configuration file {}'.format(filename))
         try:
             with open(filename, 'r') as f:
-                self.config = yaml.load(f, Loader=yaml.FullLoader)
+                self.config = yaml.load(f, Loader=yaml.SafeLoader)
                 self.logger.debug('Config loaded')
                 self.logger.debug(self.config)
         except FileNotFoundError:
