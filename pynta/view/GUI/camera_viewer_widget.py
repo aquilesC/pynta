@@ -1,5 +1,6 @@
 import pyqtgraph as pg
 import numpy as np
+from PyQt5 import QtGui
 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import Qt
@@ -12,6 +13,7 @@ class CameraViewerWidget(QWidget):
     """
     specialTask = pyqtSignal()
     stopSpecialTask = pyqtSignal()
+
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         # General layout of the widget to hold an image and a histogram
@@ -30,10 +32,9 @@ class CameraViewerWidget(QWidget):
         self.marker.setBrush(255, 0, 0, 255)
         self.view.addItem(self.img)
         self.view.addItem(self.marker)
-        self.imv = pg.ImageView(view=self.view, imageItem=self.img)
 
         # Add everything to the widget
-        self.layout.addWidget(self.imv)
+        self.layout.addWidget(self.viewport)
         self.setLayout(self.layout)
 
         self.showCrosshair = False
@@ -45,9 +46,11 @@ class CameraViewerWidget(QWidget):
 
         self.first_image = True
 
+        self.viewport.scene().sigMouseClicked.connect(self.click_event)
+
     def setup_roi_lines(self, max_size):
         """Sets up the ROI lines surrounding the image.
-        
+
         :param list max_size: List containing the maximum size of the image to avoid ROIs bigger than the CCD."""
 
         self.hline1 = pg.InfiniteLine(angle=0, movable=True, hoverPen={'color': "FF0", 'width': 4})
@@ -99,11 +102,10 @@ class CameraViewerWidget(QWidget):
         self.hline2.setValue(y2)  # To the last pixel
         self.vline2.setValue(x2)  # To the last pixel
 
-
     def setup_mouse_tracking(self):
-        self.imv.setMouseTracking(True)
-        self.imv.getImageItem().scene().sigMouseMoved.connect(self.mouseMoved)
-        self.imv.getImageItem().scene().contextMenu = None
+        self.viewport.setMouseTracking(True)
+        self.viewport.getImageItem().scene().sigMouseMoved.connect(self.mouseMoved)
+        self.viewport.getImageItem().scene().contextMenu = None
 
     def keyPressEvent(self,key):
         """Triggered when there is a key press with some modifier.
@@ -146,7 +148,10 @@ class CameraViewerWidget(QWidget):
 
     def do_auto_scale(self):
         h, y = self.img.getHistogram()
-        self.imv.setLevels(min(h),max(h))
+        if int(np.min(h)) != int(np.max(h)):
+            self.img.setLevels((int(np.min(h)),int(np.max(h))))
+        else:
+            self.img.setLevels((0, 255))
 
     def draw_target_pointer(self, locations):
         """gets an image and draws a circle around the target locations.
@@ -178,6 +183,15 @@ class CameraViewerWidget(QWidget):
         """Set ups the horizontal line for the cross cut."""
         self.crossCut = pg.InfiniteLine(angle=0, movable=False, pen={'color': 'g', 'width': 2})
         self.crossCut.setBounds((1, max_size))
+
+    def click_event(self, event):
+        print(event.pos())
+        position = np.array(event.pos())
+        brush = pg.mkBrush(color=(255, 255, 0))
+        self.marker.setData((position[1], position[0]), symbol='o', symbolBrush=brush, size=120)
+        pen = QtGui.QPen(pg.QtCore.Qt.red, 0.1)
+        r = pg.EllipseROI(pos=(100, 100), size=10, pen=pen, movable=True)
+        self.viewport.addItem(r)
 
 
 if __name__ == "__main__":
